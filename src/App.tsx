@@ -24,7 +24,7 @@ import {
 import { Sidebar } from './components/layout/Sidebar';
 import { Navbar } from './components/layout/Navbar';
 import { GlobalSearchModal } from './components/layout/GlobalSearchModal';
-import { IntegrationStatusHeader } from './components/common/IntegrationStatusHeader';
+//import { IntegrationStatusHeader } from './components/common/IntegrationStatusHeader';
 
 // Views
 import { LandingPage } from './components/landing/LandingPage';
@@ -235,7 +235,7 @@ export function App() {
         />
 
         <main className="flex-1 overflow-y-auto px-6 py-6 sm:px-8 bg-slate-50 space-y-6">
-          <IntegrationStatusHeader onSelectTab={setCurrentTab} />
+          {/* <IntegrationStatusHeader onSelectTab={setCurrentTab} /> */}
 
           {currentTab === 'dashboard' && (
             <DashboardView

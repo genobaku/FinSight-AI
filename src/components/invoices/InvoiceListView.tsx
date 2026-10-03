@@ -1,7 +1,7 @@
+
 import React, { useState } from 'react';
 import {
   Search,
-  Filter,
   Plus,
   Download,
   FileText,
@@ -10,9 +10,7 @@ import {
   Trash2,
   Copy,
   CheckCircle,
-  Clock,
-  AlertCircle,
-  MoreVertical,
+  MoreHorizontal,
 } from 'lucide-react';
 import { Badge } from '../common/Badge';
 import { Invoice, InvoiceStatus, Customer } from '../../types';
@@ -36,194 +34,477 @@ export const InvoiceListView: React.FC<InvoiceListViewProps> = ({
   onOpenPreviewModal,
   onDeleteInvoice,
   onUpdateStatus,
-  onDuplicateInvoice, }) => {
+  onDuplicateInvoice,
+}) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<string>('All');
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
 
   const filteredInvoices = invoices.filter((inv) => {
+    const search = searchTerm.toLowerCase();
+
     const matchesSearch =
-      inv.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      inv.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      inv.customerEmail.toLowerCase().includes(searchTerm.toLowerCase());
+      inv.invoiceNumber.toLowerCase().includes(search) ||
+      inv.customerName.toLowerCase().includes(search) ||
+      inv.customerEmail.toLowerCase().includes(search);
 
     const matchesStatus =
-      selectedStatus === 'All' || inv.status.toLowerCase() === selectedStatus.toLowerCase();
+      selectedStatus === 'All' ||
+      inv.status.toLowerCase() === selectedStatus.toLowerCase();
 
     return matchesSearch && matchesStatus;
   });
 
   const exportCSV = () => {
-    const headers = ['Invoice Number,Customer,Issue Date,Due Date,Total,Status\n'];
+    const headers =
+      'Invoice Number,Customer,Issue Date,Due Date,Total,Status\n';
+
     const rows = filteredInvoices.map(
-      (i) => `"${i.invoiceNumber}","${i.customerName}","${i.issueDate}","${i.dueDate}",${i.total},"${i.status}"`
+      (i) =>
+        `"${i.invoiceNumber}","${i.customerName}","${i.issueDate}","${i.dueDate}",${i.total},"${i.status}"`
     );
-    const blob = new Blob([...headers, ...rows.join('\n')], { type: 'text/csv' });
+
+    const blob = new Blob([headers, rows.join('\n')], {
+      type: 'text/csv',
+    });
+
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
+
     a.href = url;
-    a.download = `FinSight_Invoices_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `FinSight_Invoices_${new Date()
+      .toISOString()
+      .slice(0, 10)}.csv`;
+
     a.click();
+    URL.revokeObjectURL(url);
   };
 
+  const totalInvoices = invoices.length;
+
+  const paidInvoices = invoices.filter(
+    (invoice) => invoice.status === 'Paid'
+  ).length;
+
+  const pendingInvoices = invoices.filter(
+    (invoice) => invoice.status === 'Pending'
+  ).length;
+
+  const overdueInvoices = invoices.filter(
+    (invoice) => invoice.status === 'Overdue'
+  ).length;
+
   return (
-    <div className="space-y-6 pb-12">
-      {/* Top Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="max-w-7xl mx-auto space-y-8 pb-14">
+
+      {/* ------------------------------------------------
+          HEADER
+      ------------------------------------------------ */}
+      <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5">
         <div>
-          <h2 className="text-xl font-bold text-slate-900 tracking-tight">Invoice Directory</h2>
-          <p className="text-xs text-slate-500">
-            Create, manage, track, and export commercial client invoices.
+          
+
+          <h1 className="text-3xl font-semibold tracking-tight text-slate-900">
+            Invoices
+          </h1>
+
+          <p className="mt-2 text-sm text-slate-500 max-w-xl">
+            Create invoices, follow payment status, and keep your billing
+            organized in one place.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <button
             onClick={exportCSV}
-            className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold border border-slate-200 transition-colors flex items-center gap-2"
+            className="inline-flex items-center gap-2 h-10 px-4
+              rounded-lg border border-slate-200
+              bg-white text-sm font-medium text-slate-700
+              hover:bg-slate-50 transition-colors"
           >
-            <Download className="w-3.5 h-3.5" />
-            <span>Export CSV</span>
+            <Download className="w-4 h-4" />
+            Export
           </button>
 
           <button
             onClick={onOpenCreateModal}
-            className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-md shadow-blue-600/20 transition-all flex items-center gap-2"
+            className="inline-flex items-center gap-2 h-10 px-4
+              rounded-lg bg-slate-900 text-white
+              text-sm font-medium
+              hover:bg-slate-800 transition-colors"
           >
             <Plus className="w-4 h-4" />
-            <span>Create Invoice</span>
+            New invoice
           </button>
         </div>
       </div>
 
-      {/* Filter and Search Bar */}
-      <div className="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 absolute left-3.5 top-3 text-slate-400" />
+     
+{/* ------------------------------------------------
+    QUICK SUMMARY
+------------------------------------------------ */}
+<div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+
+  {/* Total */}
+  <div className="bg-white border border-slate-200 rounded-xl p-5">
+    <div className="flex items-center justify-between">
+      <p className="text-sm font-medium text-slate-500">
+        Total invoices
+      </p>
+
+      <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
+        <FileText className="w-4 h-4 text-slate-500" />
+      </div>
+    </div>
+
+    <div className="mt-4 flex items-end justify-between">
+      <p className="text-2xl font-semibold text-slate-900">
+        {totalInvoices}
+      </p>
+
+      <span className="text-xs text-slate-400 pb-1">
+        All invoices
+      </span>
+    </div>
+  </div>
+
+
+  {/* Paid */}
+  <div className="bg-white border border-slate-200 rounded-xl p-5">
+    <div className="flex items-center justify-between">
+      <p className="text-sm font-medium text-slate-500">
+        Paid
+      </p>
+
+      <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+        <CheckCircle className="w-4 h-4 text-emerald-600" />
+      </div>
+    </div>
+
+    <div className="mt-4 flex items-end justify-between">
+      <p className="text-2xl font-semibold text-slate-900">
+        {paidInvoices}
+      </p>
+
+      <span className="text-xs text-emerald-600 pb-1">
+        Completed
+      </span>
+    </div>
+  </div>
+
+
+  {/* Pending */}
+  <div className="bg-white border border-slate-200 rounded-xl p-5">
+    <div className="flex items-center justify-between">
+      <p className="text-sm font-medium text-slate-500">
+        Pending
+      </p>
+
+      <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
+        <FileText className="w-4 h-4 text-amber-600" />
+      </div>
+    </div>
+
+    <div className="mt-4 flex items-end justify-between">
+      <p className="text-2xl font-semibold text-slate-900">
+        {pendingInvoices}
+      </p>
+
+      <span className="text-xs text-amber-600 pb-1">
+        Awaiting payment
+      </span>
+    </div>
+  </div>
+
+
+  {/* Overdue */}
+  <div className="bg-white border border-slate-200 rounded-xl p-5">
+    <div className="flex items-center justify-between">
+      <p className="text-sm font-medium text-slate-500">
+        Overdue
+      </p>
+
+      <div className="w-8 h-8 rounded-lg bg-rose-50 flex items-center justify-center">
+        <FileText className="w-4 h-4 text-rose-600" />
+      </div>
+    </div>
+
+    <div className="mt-4 flex items-end justify-between">
+      <p className="text-2xl font-semibold text-slate-900">
+        {overdueInvoices}
+      </p>
+
+      <span className="text-xs text-rose-600 pb-1">
+        Needs follow-up
+      </span>
+    </div>
+  </div>
+
+</div>
+
+
+      {/* ------------------------------------------------
+          SEARCH + FILTER
+      ------------------------------------------------ */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+
+        <div className="relative w-full md:max-w-md">
+          <Search
+            className="absolute left-3.5 top-1/2 -translate-y-1/2
+              w-4 h-4 text-slate-400"
+          />
+
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search by invoice # or customer..."
-            className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 bg-slate-50 text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Search invoice or customer"
+            className="w-full h-11 pl-10 pr-4
+              bg-white border border-slate-200 rounded-lg
+              text-sm text-slate-900
+              placeholder:text-slate-400
+              focus:outline-none focus:border-slate-400
+              focus:ring-2 focus:ring-slate-100"
           />
         </div>
 
-        <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
-          {['All', 'Paid', 'Pending', 'Overdue', 'Draft'].map((status) => (
-            <button
-              key={status}
-              onClick={() => setSelectedStatus(status)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors flex-shrink-0 ${
-                selectedStatus === status
-                  ? 'bg-blue-600 text-white shadow-xs'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
+        <div className="flex items-center gap-1 overflow-x-auto">
+          {['All', 'Paid', 'Pending', 'Overdue', 'Draft'].map(
+            (status) => (
+              <button
+                key={status}
+                onClick={() => setSelectedStatus(status)}
+                className={`px-3.5 py-2 rounded-md text-sm
+                  font-medium whitespace-nowrap transition-colors ${
+                    selectedStatus === status
+                      ? 'bg-slate-100 text-slate-900'
+                      : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
+                  }`}
+              >
+                {status}
+              </button>
+            )
+          )}
+        </div>
+      </div>
+
+      {/* ------------------------------------------------
+          INVOICE LIST
+      ------------------------------------------------ */}
+      <div className="space-y-3">
+
+        {filteredInvoices.length === 0 ? (
+          <div className="border border-dashed border-slate-300 rounded-xl py-16 text-center bg-white">
+            <div className="mx-auto w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
+              <FileText className="w-5 h-5 text-slate-400" />
+            </div>
+
+            <h3 className="mt-4 text-sm font-semibold text-slate-800">
+              No invoices found
+            </h3>
+
+            <p className="mt-1 text-xs text-slate-400">
+              Try another search or change the selected status.
+            </p>
+          </div>
+        ) : (
+          filteredInvoices.map((inv) => (
+            <div
+              key={inv.id}
+              className="group bg-white border border-slate-200
+                rounded-xl px-5 py-4
+                hover:border-slate-300
+                transition-all"
             >
-              {status}
-            </button>
-          ))}
-        </div>
+              <div className="flex flex-col xl:flex-row xl:items-center gap-5">
+
+                {/* Invoice identity */}
+                <div className="flex items-center gap-4 xl:w-[27%]">
+
+                  <div className="w-10 h-10 shrink-0 rounded-lg
+                    bg-slate-50 border border-slate-200
+                    flex items-center justify-center">
+                    <FileText className="w-4 h-4 text-slate-500" />
+                  </div>
+
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-slate-900">
+                      {inv.invoiceNumber}
+                    </p>
+
+                    <p className="mt-1 text-xs text-slate-400 truncate">
+                      Issued {inv.issueDate}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Customer */}
+                <div className="xl:w-[24%] min-w-0">
+                  <p className="text-xs text-slate-400 mb-1">
+                    Customer
+                  </p>
+
+                  <p className="text-sm font-medium text-slate-800 truncate">
+                    {inv.customerName}
+                  </p>
+
+                  <p className="text-xs text-slate-400 truncate mt-0.5">
+                    {inv.customerEmail}
+                  </p>
+                </div>
+
+                {/* Due */}
+                <div className="xl:w-[15%]">
+                  <p className="text-xs text-slate-400 mb-1">
+                    Due
+                  </p>
+
+                  <p className="text-sm text-slate-700">
+                    {inv.dueDate}
+                  </p>
+
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    {inv.paymentTerms}
+                  </p>
+                </div>
+
+                {/* Status */}
+                <div className="xl:w-[13%]">
+                  <p className="text-xs text-slate-400 mb-1.5">
+                    Status
+                  </p>
+
+                  <Badge status={inv.status} />
+                </div>
+
+                {/* Amount */}
+                <div className="xl:w-[13%] xl:text-right">
+                  <p className="text-xs text-slate-400 mb-1">
+                    Amount
+                  </p>
+
+                  <p className="text-base font-semibold text-slate-900">
+                    {inv.currency}
+                    {inv.total.toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                    })}
+                  </p>
+                </div>
+
+                {/* Actions */}
+                <div className="xl:ml-auto relative">
+
+                  <div className="flex items-center justify-end gap-1">
+
+                    <button
+                      onClick={() => onOpenPreviewModal(inv)}
+                      className="p-2 rounded-md text-slate-400
+                        hover:text-slate-800 hover:bg-slate-100
+                        transition-colors"
+                      title="Preview"
+                    >
+                      <Eye className="w-4 h-4" />
+                    </button>
+
+                    <button
+                      onClick={() => onOpenEditModal(inv)}
+                      className="p-2 rounded-md text-slate-400
+                        hover:text-slate-800 hover:bg-slate-100
+                        transition-colors"
+                      title="Edit"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+
+                    <button
+                      onClick={() =>
+                        setActiveMenuId(
+                          activeMenuId === inv.id ? null : inv.id
+                        )
+                      }
+                      className="p-2 rounded-md text-slate-400
+                        hover:text-slate-800 hover:bg-slate-100
+                        transition-colors"
+                      title="More"
+                    >
+                      <MoreHorizontal className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  {/* More menu */}
+                  {activeMenuId === inv.id && (
+                    <div className="absolute right-0 top-10 z-20
+                      w-44 bg-white border border-slate-200
+                      rounded-lg shadow-lg py-1">
+
+                      {inv.status !== 'Paid' && (
+                        <button
+                          onClick={() => {
+                            onUpdateStatus(inv.id, 'Paid');
+                            setActiveMenuId(null);
+                          }}
+                          className="w-full px-3 py-2.5
+                            flex items-center gap-2.5
+                            text-left text-sm text-slate-700
+                            hover:bg-slate-50"
+                        >
+                          <CheckCircle className="w-4 h-4 text-emerald-500" />
+                          Mark as paid
+                        </button>
+                      )}
+
+                      <button
+                        onClick={() => {
+                          onDuplicateInvoice(inv);
+                          setActiveMenuId(null);
+                        }}
+                        className="w-full px-3 py-2.5
+                          flex items-center gap-2.5
+                          text-left text-sm text-slate-700
+                          hover:bg-slate-50"
+                      >
+                        <Copy className="w-4 h-4 text-slate-400" />
+                        Duplicate
+                      </button>
+
+                      <div className="my-1 border-t border-slate-100" />
+
+                      <button
+                        onClick={() => {
+                          onDeleteInvoice(inv.id);
+                          setActiveMenuId(null);
+                        }}
+                        className="w-full px-3 py-2.5
+                          flex items-center gap-2.5
+                          text-left text-sm text-rose-600
+                          hover:bg-rose-50"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Delete
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+              </div>
+            </div>
+          ))
+        )}
       </div>
 
-      {/* Invoices Table */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse">
-            <thead>
-              <tr className="border-b border-slate-100 bg-slate-50/50 text-slate-400 font-semibold uppercase tracking-wider">
-                <th className="py-3.5 px-4">Invoice #</th>
-                <th className="py-3.5 px-4">Customer</th>
-                <th className="py-3.5 px-4">Issue Date</th>
-                <th className="py-3.5 px-4">Due Date</th>
-                <th className="py-3.5 px-4">Terms</th>
-                <th className="py-3.5 px-4">Amount</th>
-                <th className="py-3.5 px-4">Status</th>
-                <th className="py-3.5 px-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
-              {filteredInvoices.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className="py-12 text-center text-slate-400">
-                    No invoices match your query. Try resetting filters.
-                  </td>
-                </tr>
-              ) : (
-                filteredInvoices.map((inv) => (
-                  <tr key={inv.id} className="hover:bg-slate-50/80 transition-colors group">
-                    <td className="py-4 px-4 font-bold text-slate-900 flex items-center gap-2">
-                      <FileText className="w-4 h-4 text-blue-600" />
-                      <span>{inv.invoiceNumber}</span>
-                    </td>
-                    <td className="py-4 px-4">
-                      <div>
-                        <p className="font-bold text-slate-900">{inv.customerName}</p>
-                        <p className="text-[11px] text-slate-400">{inv.customerEmail}</p>
-                      </div>
-                    </td>
-                    <td className="py-4 px-4 text-slate-500">{inv.issueDate}</td>
-                    <td className="py-4 px-4 text-slate-500">{inv.dueDate}</td>
-                    <td className="py-4 px-4 text-slate-500">{inv.paymentTerms}</td>
-                    <td className="py-4 px-4 font-bold text-slate-900 text-sm">
-                      {inv.currency}
-                      {inv.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                    </td>
-                    <td className="py-4 px-4">
-                      <Badge status={inv.status} />
-                    </td>
-                    <td className="py-4 px-4 text-right relative">
-                      <div className="flex items-center justify-end gap-1">
-                        <button
-                          onClick={() => onOpenPreviewModal(inv)}
-                          className="p-1.5 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-                          title="Preview & Print"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
+      {/* Footer */}
+      {filteredInvoices.length > 0 && (
+        <div className="flex items-center justify-between pt-2">
+          <p className="text-xs text-slate-400">
+            Showing {filteredInvoices.length} of {invoices.length} invoices
+          </p>
 
-                        <button
-                          onClick={() => onOpenEditModal(inv)}
-                          className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
-                          title="Edit Invoice"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-
-                        {inv.status !== 'Paid' && (
-                          <button
-                            onClick={() => onUpdateStatus(inv.id, 'Paid')}
-                            className="p-1.5 rounded-lg text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
-                            title="Mark as Paid"
-                          >
-                            <CheckCircle className="w-4 h-4" />
-                          </button>
-                        )}
-
-                        <button
-                          onClick={() => onDuplicateInvoice(inv)}
-                          className="p-1.5 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
-                          title="Duplicate Invoice"
-                        >
-                          <Copy className="w-4 h-4" />
-                        </button>
-
-                        <button
-                          onClick={() => onDeleteInvoice(inv.id)}
-                          className="p-1.5 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-colors"
-                          title="Delete Invoice"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+          <p className="text-xs text-slate-400">
+            FinSight billing
+          </p>
         </div>
-      </div>
+      )}
     </div>
   );
 };
+
