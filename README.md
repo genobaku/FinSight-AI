@@ -1,4 +1,5 @@
-# 💳 FinSight AI - AI-First Financial Data Intelligence Platform
+# 💳 FinSight AI - 
+
 
 > **Team Hydra** | Project Portfolio & Architecture Documentation
 
@@ -9,10 +10,10 @@
 | Student Name | Roll No. | Sec | Class Roll | Primary Role & Contributions |
 | :--- | :--- | :---: | :---: | :--- |
 | **Anu Gaur** *(Team Leader)* | **12584200038** | **A** | **10** | **Project Lead & AI/ML Systems Architect**<br>• Lead architectural design and machine learning pipeline implementation.<br>• Designed the ML OCR extraction engine, TF-IDF vectorizer, Naive Bayes classifier, and backend Flask APIs.<br>• Architected hybrid frontend/backend data contracts, Supabase PostgreSQL schema, and cloud deployment pipelines. |
-| **Anubhav Dubey** | **12584200039** | **A** | **11** | **Backend Developer & Database Engineer** |
+| **Anubhav Dubey** | **12584200039** | **A** | **11** |  |
 | **Bhumika Goyal** | **12584200056** | **A** | **17** | **Frontend Developer & QA Bug Tester**<br>• Developed core React presentational views, dark/light theme switching, and responsive layouts.<br>• Performed cross-browser testing, UI verification, and user workflow regression testing. |
-| **Shradha Sharma** | **12584200181** | **A** | **57** | **Documentation & UI Design Specialist** |
-| **Vanshika Sengar** | **12584200204** | **A** | **69** | **Data Analyst & Testing Engineer** |
+| **Shradha Sharma** | **12584200181** | **A** | **57** | |
+| **Vanshika Sengar** | **12584200204** | **A** | **69** | |
 
 ---
 
