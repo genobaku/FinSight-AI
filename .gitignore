@@ -1,0 +1,29 @@
+# Node dependencies
+node_modules/
+dist/
+.vite/
+*.log
+
+# Python virtual environment & cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+venv/
+.venv/
+env/
+
+# Environment files with real credentials (SECURITY MANDATE)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Temporary files & OS files
+.DS_Store
+Thumbs.db
+tmp/
+temp/
+scratch/
