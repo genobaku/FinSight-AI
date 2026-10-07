@@ -1,10 +1,5 @@
 
 
-
-
-
-
-
 import React, { useState } from 'react';
 import { UserProfile } from '../../types';
 import {

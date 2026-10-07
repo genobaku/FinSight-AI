@@ -313,20 +313,20 @@ export const ReceiptScannerView: React.FC<ReceiptScannerViewProps> = ({
       />
 
       {/* Header Banner */}
-      <div className="p-6 bg-white rounded-2xl border border-slate-200/90 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-1">
         <div className="space-y-1">
-          <div className="inline-flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-600 border border-blue-200">
-              <Sparkles className="w-3.5 h-3.5 text-blue-600" /> Gemini Vision OCR
+          <div className="flex flex-wrap items-center gap-2 mb-2">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+              <Sparkles className="w-3.5 h-3.5 text-slate-700" /> Gemini Vision OCR
             </span>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-600 border border-indigo-200">
-              <CloudUpload className="w-3.5 h-3.5 text-indigo-600" /> Cloudinary CDN
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+              <CloudUpload className="w-3.5 h-3.5 text-slate-700" /> Cloudinary CDN
             </span>
           </div>
-          <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">
+          <h2 className="text-2xl font-bold text-slate-900 tracking-tight">
             AI Vision Receipt & Invoice OCR Pipeline
           </h2>
-          <p className="text-xs text-slate-500">
+          <p className="text-sm text-slate-500 max-w-3xl leading-6">
             Upload physical or digital receipts. Images are backed up to Cloudinary CDN and converted into structured, editable data via Gemini AI Vision.
           </p>
         </div>
@@ -334,7 +334,7 @@ export const ReceiptScannerView: React.FC<ReceiptScannerViewProps> = ({
         <button
           onClick={triggerUpload}
           disabled={isScanning}
-          className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-bold shadow-xs transition-all flex items-center gap-2 self-start md:self-auto cursor-pointer"
+          className="w-[175px] h-10 rounded-xl bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white text-sm font-semibold shadow-sm transition-all flex items-center justify-center gap-2 whitespace-nowrap self-start md:self-auto cursor-pointer"
         >
           {isScanning ? (
             <>
@@ -344,7 +344,7 @@ export const ReceiptScannerView: React.FC<ReceiptScannerViewProps> = ({
           ) : (
             <>
               <Upload className="w-4 h-4" />
-              <span>Upload Receipt Image</span>
+              <span>Upload Receipt</span>
             </>
           )}
         </button>
@@ -352,36 +352,67 @@ export const ReceiptScannerView: React.FC<ReceiptScannerViewProps> = ({
 
       {/* Scanning status banner */}
       {isScanning && (
-        <div className="p-4 bg-blue-50 border border-blue-200 rounded-2xl flex items-center gap-3 text-xs text-blue-800 font-semibold animate-pulse">
-          <RefreshCw className="w-5 h-5 animate-spin text-blue-600" />
+        <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl flex items-center gap-3 text-xs text-slate-800 font-semibold animate-pulse">
+          <RefreshCw className="w-5 h-5 animate-spin text-slate-700" />
           <span>{statusMessage || 'Processing image with AI OCR pipeline...'}</span>
         </div>
       )}
 
-      {/* Upload Drag & Drop Box when no active scan */}
+      {/* Receipt Upload */}
       {!extractedInvoice && !isScanning && (
-        <div
-          onClick={triggerUpload}
-          className="p-10 border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-3xl bg-white text-center cursor-pointer transition-all space-y-3 group shadow-xs"
-        >
-          <div className="w-14 h-14 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 mx-auto group-hover:scale-110 transition-transform">
-            <Upload className="w-7 h-7" />
+        <section className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-slate-200 flex items-center justify-between gap-4">
+            <div>
+              <h3 className="text-sm font-bold text-slate-900">Upload receipt</h3>
+              <p className="text-xs text-slate-500 mt-1">
+                Add a receipt or invoice to extract its details automatically.
+              </p>
+            </div>
+            <span className="hidden sm:inline-flex items-center px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200 text-[11px] font-semibold text-slate-600">
+              OCR enabled
+            </span>
           </div>
-          <p className="text-sm font-bold text-slate-900">Click or drag & drop receipt file to upload to Cloudinary</p>
-          <p className="text-xs text-slate-400">Supports PNG, JPG, WEBP, and PDF files. Images are parsed live using Gemini AI Vision.</p>
-        </div>
+
+          <div className="p-5">
+            <button
+              type="button"
+              onClick={triggerUpload}
+              className="w-full min-h-[190px] border border-dashed border-slate-300 hover:border-slate-500 hover:bg-slate-50/70 rounded-xl transition-colors flex flex-col items-center justify-center text-center px-6 py-8 cursor-pointer"
+            >
+              <span className="w-12 h-12 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-700 mb-4">
+                <Upload className="w-6 h-6" />
+              </span>
+
+              <span className="text-sm font-semibold text-slate-900">
+                Select a receipt file
+              </span>
+
+              <span className="text-xs text-slate-500 mt-1.5 max-w-md">
+                Choose an image or PDF from your computer. The file will be uploaded and scanned for invoice details.
+              </span>
+
+              <span className="mt-4 inline-flex items-center justify-center h-10 px-5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold shadow-sm transition-colors">
+                Choose file
+              </span>
+
+              <span className="text-[11px] text-slate-400 mt-3">
+                PNG, JPG, WEBP or PDF
+              </span>
+            </button>
+          </div>
+        </section>
       )}
 
       {/* Saved Toast Notification */}
       {savedSuccess && (
-        <div className="p-4 bg-emerald-500 text-white rounded-2xl shadow-lg flex items-center justify-between gap-4 text-xs font-bold animate-in fade-in">
+        <div className="p-4 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl flex items-center justify-between gap-4 text-xs font-bold animate-in fade-in">
           <div className="flex items-center gap-2">
-            <CheckCircle className="w-5 h-5 text-white" />
+            <CheckCircle className="w-5 h-5 text-slate-700" />
             <span>Invoice & Receipt successfully extracted and saved to PostgreSQL database!</span>
           </div>
           <button
             onClick={() => setSavedSuccess(false)}
-            className="text-white hover:text-emerald-100 font-bold underline"
+            className="text-slate-600 hover:text-slate-900 font-semibold underline"
           >
             Dismiss
           </button>
@@ -390,9 +421,9 @@ export const ReceiptScannerView: React.FC<ReceiptScannerViewProps> = ({
 
       {/* Duplicate Data Alert Banner */}
       {duplicateError && (
-        <div className="p-4 bg-red-500 text-white rounded-2xl shadow-lg flex items-center justify-between gap-4 text-xs font-bold animate-in fade-in">
+        <div className="p-4 bg-red-50 border border-red-200 text-red-800 rounded-xl flex items-center justify-between gap-4 text-xs font-bold animate-in fade-in">
           <div className="flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5 text-white flex-shrink-0" />
+            <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0" />
             <span>This data already exists in your records! Duplicate receipt / invoice detected.</span>
           </div>
           <button
@@ -408,15 +439,15 @@ export const ReceiptScannerView: React.FC<ReceiptScannerViewProps> = ({
       {extractedInvoice && (
         <div className="space-y-4">
           {/* Top Status & Confidence Bar */}
-          <div className="p-4 bg-white border border-slate-200 rounded-2xl shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="p-4 bg-white border border-slate-200 rounded-xl shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-500/10 text-emerald-700 font-bold text-xs border border-emerald-500/20">
-                <FileCheck className="w-4 h-4 text-emerald-600" />
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-100 text-slate-800 font-semibold text-xs border border-slate-200">
+                <FileCheck className="w-4 h-4 text-slate-700" />
                 Extraction Successful
               </span>
               <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg font-extrabold text-xs border ${
                 extractedInvoice.confidence >= 80
-                  ? 'bg-blue-50 text-blue-700 border-blue-200'
+                  ? 'bg-slate-50 text-slate-700 border-slate-200'
                   : 'bg-amber-50 text-amber-700 border-amber-200'
               }`}>
                 Confidence: {extractedInvoice.confidence}%
@@ -426,7 +457,7 @@ export const ReceiptScannerView: React.FC<ReceiptScannerViewProps> = ({
             <div className="flex items-center gap-2">
               <button
                 onClick={handleResetScan}
-                className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center gap-1.5 transition-colors"
+                className="h-10 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-sm flex items-center gap-1.5 transition-colors"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 <span>Upload Another</span>
@@ -434,7 +465,7 @@ export const ReceiptScannerView: React.FC<ReceiptScannerViewProps> = ({
 
               <button
                 onClick={handleConfirmSave}
-                className="px-4 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-xs transition-all"
+                className="px-4 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-sm transition-all"
               >
                 <Save className="w-3.5 h-3.5" />
                 <span>Confirm & Save to System</span>
@@ -453,10 +484,10 @@ export const ReceiptScannerView: React.FC<ReceiptScannerViewProps> = ({
           {/* Side by Side Grid Layout */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             {/* LEFT SIDE: Uploaded Receipt Preview */}
-            <div className="lg:col-span-5 bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-4">
+            <div className="lg:col-span-5 bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
               <div className="flex items-center justify-between pb-2 border-b border-slate-100">
                 <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-                  <ImageIcon className="w-4 h-4 text-blue-600" />
+                  <ImageIcon className="w-4 h-4 text-slate-700" />
                   <span>Uploaded Receipt Preview</span>
                 </h3>
 
@@ -465,7 +496,7 @@ export const ReceiptScannerView: React.FC<ReceiptScannerViewProps> = ({
                     href={uploadedImageUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 hover:text-blue-700 hover:underline"
+                    className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-700 hover:text-slate-700 hover:underline"
                   >
                     <span>View on Cloudinary</span>
                     <ExternalLink className="w-3 h-3" />
@@ -491,10 +522,10 @@ export const ReceiptScannerView: React.FC<ReceiptScannerViewProps> = ({
             </div>
 
             {/* RIGHT SIDE: Structured AI Extraction Editor */}
-            <div className="lg:col-span-7 bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-5">
+            <div className="lg:col-span-7 bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-5">
               <div className="flex items-center justify-between pb-2 border-b border-slate-100">
                 <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-                  <Sparkles className="w-4 h-4 text-blue-600" />
+                  <Sparkles className="w-4 h-4 text-slate-700" />
                   <span>Structured AI Extraction (Editable)</span>
                 </h3>
                 <span className="text-[11px] text-slate-400 font-medium">Verify & edit fields below</span>
@@ -593,7 +624,7 @@ export const ReceiptScannerView: React.FC<ReceiptScannerViewProps> = ({
                   <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Line Items Detected</h4>
                   <button
                     onClick={handleAddItem}
-                    className="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 font-bold text-xs flex items-center gap-1 transition-colors"
+                    className="px-2.5 py-1 rounded-lg bg-slate-50 text-slate-700 hover:bg-blue-100 font-bold text-xs flex items-center gap-1 transition-colors"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>Add Item</span>
@@ -706,14 +737,14 @@ export const ReceiptScannerView: React.FC<ReceiptScannerViewProps> = ({
 
                 <div className="flex justify-between text-slate-900 font-extrabold text-sm pt-2 border-t border-slate-200">
                   <span>Grand Total:</span>
-                  <div className="flex items-center gap-1 text-blue-600">
+                  <div className="flex items-center gap-1 text-slate-700">
                     <span>{extractedInvoice.currency}</span>
                     <input
                       type="number"
                       step="0.01"
                       value={extractedInvoice.total}
                       onChange={(e) => handleFieldChange('total', Number(e.target.value))}
-                      className="w-28 px-2 py-0.5 border border-blue-300 rounded text-right font-extrabold text-blue-600 bg-white text-sm"
+                      className="w-28 px-2 py-0.5 border border-slate-300 rounded text-right font-extrabold text-slate-700 bg-white text-sm"
                     />
                   </div>
                 </div>
@@ -723,7 +754,7 @@ export const ReceiptScannerView: React.FC<ReceiptScannerViewProps> = ({
               <div className="pt-2 flex justify-end">
                 <button
                   onClick={handleConfirmSave}
-                  className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs flex items-center gap-2 shadow-xs transition-all cursor-pointer"
+                  className="px-6 py-2.5 rounded-xl w-[145px] h-10 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <Save className="w-4 h-4" />
                   <span>Save Invoice & Receipt Record</span>
@@ -735,7 +766,7 @@ export const ReceiptScannerView: React.FC<ReceiptScannerViewProps> = ({
       )}
 
       {/* Scanned Receipts History Table */}
-      <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs space-y-3 p-5">
+      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm space-y-3 p-5">
         <h3 className="text-sm font-extrabold text-slate-900">Scanned Receipts & Verified Invoices Ledger</h3>
 
         <div className="overflow-x-auto">
@@ -759,7 +790,7 @@ export const ReceiptScannerView: React.FC<ReceiptScannerViewProps> = ({
                   <td className="py-3.5 px-3 text-slate-600">{rcpt.invoiceNumber}</td>
                   <td className="py-3.5 px-3 text-slate-500">{rcpt.date}</td>
                   <td className="py-3.5 px-3 text-slate-600">{rcpt.category}</td>
-                  <td className="py-3.5 px-3 text-emerald-600 font-bold">{rcpt.confidenceScore}%</td>
+                  <td className="py-3.5 px-3 text-slate-700 font-bold">{rcpt.confidenceScore}%</td>
                   <td className="py-3.5 px-3 font-extrabold text-slate-900">${rcpt.total.toLocaleString()}</td>
                   <td className="py-3.5 px-3">
                     {rcpt.imageUrl ? (
@@ -767,7 +798,7 @@ export const ReceiptScannerView: React.FC<ReceiptScannerViewProps> = ({
                         href={rcpt.imageUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center gap-1 text-blue-600 hover:underline font-medium text-[11px]"
+                        className="inline-flex items-center gap-1 text-slate-700 hover:underline font-medium text-[11px]"
                       >
                         <ImageIcon className="w-3 h-3" />
                         <span>Cloudinary Asset</span>
