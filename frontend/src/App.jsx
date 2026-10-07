@@ -7,18 +7,9 @@ import {
   INITIAL_NOTIFICATIONS,
   INITIAL_RECEIPTS,
   INITIAL_USER,
-  INITIAL_VENDORS,
-} from './data/mockData';
-import {
-  Customer,
-  Expense,
-  Invoice,
-  NotificationItem,
-  Receipt,
-  TabType,
-  UserProfile,
-  Vendor,
-} from './types';
+  INITIAL_VENDORS } from
+'./data/mockData';
+
 
 // Layout
 import { Sidebar } from './components/layout/Sidebar';
@@ -52,28 +43,28 @@ import {
   saveSupabaseExpense,
   fetchSupabaseReceipts,
   saveSupabaseReceipt,
-  syncAllToSupabase,
-} from './lib/supabaseService';
+  syncAllToSupabase } from
+'./lib/supabaseService';
 
 export function App() {
-  const [currentTab, setCurrentTab] = useState<TabType>('dashboard');
+  const [currentTab, setCurrentTab] = useState('dashboard');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   // Core Datasets (Default to empty arrays; populated via user uploads or Supabase sync)
-  const [user, setUser] = useState<UserProfile>(INITIAL_USER);
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [vendors, setVendors] = useState<Vendor[]>([]);
-  const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [receipts, setReceipts] = useState<Receipt[]>([]);
-  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
-  const [aiInsights, setAiInsights] = useState<any[]>([]);
+  const [user, setUser] = useState(INITIAL_USER);
+  const [invoices, setInvoices] = useState([]);
+  const [customers, setCustomers] = useState([]);
+  const [vendors, setVendors] = useState([]);
+  const [expenses, setExpenses] = useState([]);
+  const [receipts, setReceipts] = useState([]);
+  const [notifications, setNotifications] = useState([]);
+  const [aiInsights, setAiInsights] = useState([]);
 
   // Modals & Active Selections
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
-  const [selectedInvoiceForEdit, setSelectedInvoiceForEdit] = useState<Invoice | undefined>(undefined);
-  const [selectedInvoiceForPreview, setSelectedInvoiceForPreview] = useState<Invoice | null>(null);
+  const [selectedInvoiceForEdit, setSelectedInvoiceForEdit] = useState(undefined);
+  const [selectedInvoiceForPreview, setSelectedInvoiceForPreview] = useState(null);
 
   // Fetch initial records from Supabase on mount if configured
   useEffect(() => {
@@ -97,18 +88,18 @@ export function App() {
   const unreadNotificationsCount = notifications.filter((n) => !n.read).length;
 
   // Handlers for Invoices
-  const handleSaveInvoice = (invoiceData: Omit<Invoice, 'id' | 'createdAt'>) => {
-    let savedInvoice: Invoice;
+  const handleSaveInvoice = (invoiceData) => {
+    let savedInvoice;
     if (selectedInvoiceForEdit) {
       savedInvoice = { ...selectedInvoiceForEdit, ...invoiceData };
       setInvoices((prev) =>
-        prev.map((i) => (i.id === selectedInvoiceForEdit.id ? savedInvoice : i))
+      prev.map((i) => i.id === selectedInvoiceForEdit.id ? savedInvoice : i)
       );
     } else {
       savedInvoice = {
         ...invoiceData,
         id: `inv-${Date.now()}`,
-        createdAt: new Date().toISOString().split('T')[0],
+        createdAt: new Date().toISOString().split('T')[0]
       };
       setInvoices((prev) => [savedInvoice, ...prev]);
     }
@@ -118,61 +109,61 @@ export function App() {
     setSelectedInvoiceForEdit(undefined);
   };
 
-  const handleDeleteInvoice = (id: string) => {
+  const handleDeleteInvoice = (id) => {
     setInvoices((prev) => prev.filter((i) => i.id !== id));
     deleteSupabaseInvoice(id);
   };
 
-  const handleUpdateStatus = (id: string, status: Invoice['status']) => {
+  const handleUpdateStatus = (id, status) => {
     setInvoices((prev) =>
-      prev.map((i) => {
-        if (i.id === id) {
-          const updated = { ...i, status };
-          saveSupabaseInvoice(updated);
-          return updated;
-        }
-        return i;
-      })
+    prev.map((i) => {
+      if (i.id === id) {
+        const updated = { ...i, status };
+        saveSupabaseInvoice(updated);
+        return updated;
+      }
+      return i;
+    })
     );
   };
 
   // Handlers for Expenses & Receipts
-  const handleAddExpense = (newExp: Omit<Expense, 'id'>) => {
-    const expenseWithId: Expense = {
+  const handleAddExpense = (newExp) => {
+    const expenseWithId = {
       ...newExp,
-      id: `exp-${Date.now()}`,
+      id: `exp-${Date.now()}`
     };
     setExpenses((prev) => [expenseWithId, ...prev]);
     saveSupabaseExpense(expenseWithId);
   };
 
-  const handleAddReceipt = (newRcpt: Receipt) => {
+  const handleAddReceipt = (newRcpt) => {
     setReceipts((prev) => [newRcpt, ...prev]);
     saveSupabaseReceipt(newRcpt);
   };
 
   // Handlers for Customers & Vendors
-  const handleAddCustomer = (newCust: Omit<Customer, 'id' | 'createdAt'>) => {
-    const customerWithId: Customer = {
+  const handleAddCustomer = (newCust) => {
+    const customerWithId = {
       ...newCust,
       id: `cust-${Date.now()}`,
-      createdAt: new Date().toISOString().split('T')[0],
+      createdAt: new Date().toISOString().split('T')[0]
     };
     setCustomers((prev) => [customerWithId, ...prev]);
   };
 
-  const handleAddVendor = (newVen: Omit<Vendor, 'id' | 'createdAt'>) => {
-    const vendorWithId: Vendor = {
+  const handleAddVendor = (newVen) => {
+    const vendorWithId = {
       ...newVen,
       id: `ven-${Date.now()}`,
-      createdAt: new Date().toISOString().split('T')[0],
+      createdAt: new Date().toISOString().split('T')[0]
     };
     setVendors((prev) => [vendorWithId, ...prev]);
   };
 
-  const handleMarkNotificationRead = (id: string) => {
+  const handleMarkNotificationRead = (id) => {
     setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+    prev.map((n) => n.id === id ? { ...n, read: true } : n)
     );
   };
 
@@ -183,7 +174,7 @@ export function App() {
       receipts,
       customers,
       vendors,
-      user,
+      user
     });
   };
 
@@ -192,9 +183,9 @@ export function App() {
     return (
       <LandingPage
         onLaunchApp={() => setCurrentTab('dashboard')}
-        onLogin={() => setCurrentTab('login')}
-      />
-    );
+        onLogin={() => setCurrentTab('login')} />);
+
+
   }
 
   if (currentTab === 'login') {
@@ -202,9 +193,9 @@ export function App() {
       <LoginPage
         onSuccess={() => setCurrentTab('dashboard')}
         onLoginSuccess={() => setCurrentTab('dashboard')}
-        onBackToLanding={() => setCurrentTab('landing')}
-      />
-    );
+        onBackToLanding={() => setCurrentTab('landing')} />);
+
+
   }
 
   return (
@@ -216,8 +207,8 @@ export function App() {
         isCollapsed={isSidebarCollapsed}
         onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
         unreadNotificationsCount={unreadNotificationsCount}
-        user={user}
-      />
+        user={user} />
+      
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
@@ -231,102 +222,102 @@ export function App() {
           }}
           onOpenReceiptScan={() => setCurrentTab('receipts')}
           unreadNotificationsCount={unreadNotificationsCount}
-          user={user}
-        />
+          user={user} />
+        
 
         <main className="flex-1 overflow-y-auto px-6 py-6 sm:px-8 bg-slate-50 space-y-6">
           <IntegrationStatusHeader onSelectTab={setCurrentTab} />
 
-          {currentTab === 'dashboard' && (
-            <DashboardView
-              user={user}
-              invoices={invoices}
-              expenses={expenses}
-              receipts={receipts}
-              aiInsights={aiInsights}
-              onSelectTab={setCurrentTab}
-              onOpenNewInvoice={() => {
-                setSelectedInvoiceForEdit(undefined);
-                setIsInvoiceModalOpen(true);
-              }}
-              onOpenReceiptScan={() => setCurrentTab('receipts')}
-              onSelectInvoice={(inv) => setSelectedInvoiceForPreview(inv)}
-            />
-          )}
+          {currentTab === 'dashboard' &&
+          <DashboardView
+            user={user}
+            invoices={invoices}
+            expenses={expenses}
+            receipts={receipts}
+            aiInsights={aiInsights}
+            onSelectTab={setCurrentTab}
+            onOpenNewInvoice={() => {
+              setSelectedInvoiceForEdit(undefined);
+              setIsInvoiceModalOpen(true);
+            }}
+            onOpenReceiptScan={() => setCurrentTab('receipts')}
+            onSelectInvoice={(inv) => setSelectedInvoiceForPreview(inv)} />
 
-          {currentTab === 'invoices' && (
-            <InvoiceListView
-              invoices={invoices}
-              onOpenNewModal={() => {
-                setSelectedInvoiceForEdit(undefined);
-                setIsInvoiceModalOpen(true);
-              }}
-              onEditInvoice={(inv) => {
-                setSelectedInvoiceForEdit(inv);
-                setIsInvoiceModalOpen(true);
-              }}
-              onPreviewInvoice={(inv) => setSelectedInvoiceForPreview(inv)}
-              onDeleteInvoice={handleDeleteInvoice}
-              onUpdateStatus={handleUpdateStatus}
-            />
-          )}
+          }
 
-          {currentTab === 'expenses' && (
-            <ExpensesView
-              expenses={expenses}
-              vendors={vendors}
-              onAddExpense={handleAddExpense}
-            />
-          )}
+          {currentTab === 'invoices' &&
+          <InvoiceListView
+            invoices={invoices}
+            onOpenNewModal={() => {
+              setSelectedInvoiceForEdit(undefined);
+              setIsInvoiceModalOpen(true);
+            }}
+            onEditInvoice={(inv) => {
+              setSelectedInvoiceForEdit(inv);
+              setIsInvoiceModalOpen(true);
+            }}
+            onPreviewInvoice={(inv) => setSelectedInvoiceForPreview(inv)}
+            onDeleteInvoice={handleDeleteInvoice}
+            onUpdateStatus={handleUpdateStatus} />
 
-          {currentTab === 'receipts' && (
-            <ReceiptScannerView
-              receipts={receipts}
-              onAddReceipt={handleAddReceipt}
-            />
-          )}
+          }
 
-          {currentTab === 'customers' && (
-            <CustomersView
-              customers={customers}
-              onAddCustomer={handleAddCustomer}
-            />
-          )}
+          {currentTab === 'expenses' &&
+          <ExpensesView
+            expenses={expenses}
+            vendors={vendors}
+            onAddExpense={handleAddExpense} />
 
-          {currentTab === 'vendors' && (
-            <VendorsView
-              vendors={vendors}
-              onAddVendor={handleAddVendor}
-            />
-          )}
+          }
 
-          {currentTab === 'analytics' && (
-            <AnalyticsView
-              invoices={invoices}
-              expenses={expenses}
-              receipts={receipts}
-            />
-          )}
+          {currentTab === 'receipts' &&
+          <ReceiptScannerView
+            receipts={receipts}
+            onAddReceipt={handleAddReceipt} />
 
-          {currentTab === 'copilot' && (
-            <CopilotView invoices={invoices} expenses={expenses} />
-          )}
+          }
 
-          {currentTab === 'notifications' && (
-            <NotificationsView
-              notifications={notifications}
-              onMarkAsRead={handleMarkNotificationRead}
-              onSelectTab={setCurrentTab}
-            />
-          )}
+          {currentTab === 'customers' &&
+          <CustomersView
+            customers={customers}
+            onAddCustomer={handleAddCustomer} />
 
-          {currentTab === 'settings' && (
-            <SettingsView
-              user={user}
-              onUpdateUser={(updated) => setUser({ ...user, ...updated })}
-              onSyncSupabase={handleSyncToSupabase}
-            />
-          )}
+          }
+
+          {currentTab === 'vendors' &&
+          <VendorsView
+            vendors={vendors}
+            onAddVendor={handleAddVendor} />
+
+          }
+
+          {currentTab === 'analytics' &&
+          <AnalyticsView
+            invoices={invoices}
+            expenses={expenses}
+            receipts={receipts} />
+
+          }
+
+          {currentTab === 'copilot' &&
+          <CopilotView invoices={invoices} expenses={expenses} />
+          }
+
+          {currentTab === 'notifications' &&
+          <NotificationsView
+            notifications={notifications}
+            onMarkAsRead={handleMarkNotificationRead}
+            onSelectTab={setCurrentTab} />
+
+          }
+
+          {currentTab === 'settings' &&
+          <SettingsView
+            user={user}
+            onUpdateUser={(updated) => setUser({ ...user, ...updated })}
+            onSyncSupabase={handleSyncToSupabase} />
+
+          }
         </main>
       </div>
 
@@ -339,8 +330,8 @@ export function App() {
         vendors={vendors}
         expenses={expenses}
         onSelectTab={setCurrentTab}
-        onSelectInvoice={(inv) => setSelectedInvoiceForPreview(inv)}
-      />
+        onSelectInvoice={(inv) => setSelectedInvoiceForPreview(inv)} />
+      
 
       <InvoiceModal
         isOpen={isInvoiceModalOpen}
@@ -351,17 +342,17 @@ export function App() {
         onSaveInvoice={handleSaveInvoice}
         invoices={invoices}
         customers={customers}
-        initialInvoice={selectedInvoiceForEdit}
-      />
+        initialInvoice={selectedInvoiceForEdit} />
+      
 
       <InvoicePreviewModal
         isOpen={!!selectedInvoiceForPreview}
         onClose={() => setSelectedInvoiceForPreview(null)}
         invoice={selectedInvoiceForPreview}
-        user={user}
-      />
-    </div>
-  );
+        user={user} />
+      
+    </div>);
+
 }
 
 export default App;

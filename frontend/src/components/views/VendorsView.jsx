@@ -1,17 +1,16 @@
 import React, { useState } from 'react';
 import { Building2, Plus, Search, Mail, Phone, ShieldCheck, AlertTriangle } from 'lucide-react';
-import { Vendor } from '../../types';
 import { Badge } from '../common/Badge';
 
-interface VendorsViewProps {
-  vendors: Vendor[];
-  onAddVendor: (vendor: Omit<Vendor, 'id' | 'createdAt'>) => void;
-}
 
-export const VendorsView: React.FC<VendorsViewProps> = ({ vendors, onAddVendor }) => {
+
+
+
+
+export const VendorsView = ({ vendors, onAddVendor }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
-  const [duplicateError, setDuplicateError] = useState<string | null>(null);
+  const [duplicateError, setDuplicateError] = useState(null);
 
   const [name, setName] = useState('');
   const [category, setCategory] = useState('Cloud Infrastructure');
@@ -20,17 +19,17 @@ export const VendorsView: React.FC<VendorsViewProps> = ({ vendors, onAddVendor }
 
   const filteredVendors = vendors.filter(
     (v) =>
-      v.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      v.category.toLowerCase().includes(searchTerm.toLowerCase())
+    v.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    v.category.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
 
     const isDuplicate = vendors.some(
       (v) =>
-        v.name.toLowerCase().trim() === name.toLowerCase().trim() ||
-        (contactEmail && v.contactEmail.toLowerCase().trim() === contactEmail.toLowerCase().trim())
+      v.name.toLowerCase().trim() === name.toLowerCase().trim() ||
+      contactEmail && v.contactEmail.toLowerCase().trim() === contactEmail.toLowerCase().trim()
     );
 
     if (isDuplicate) {
@@ -47,7 +46,7 @@ export const VendorsView: React.FC<VendorsViewProps> = ({ vendors, onAddVendor }
       totalSpent: 0,
       pendingPayables: 0,
       riskScore: 'Low',
-      status: 'Verified',
+      status: 'Verified'
     });
     setShowAddModal(false);
     setName('');
@@ -66,8 +65,8 @@ export const VendorsView: React.FC<VendorsViewProps> = ({ vendors, onAddVendor }
 
         <button
           onClick={() => setShowAddModal(true)}
-          className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs transition-all flex items-center gap-2"
-        >
+          className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs transition-all flex items-center gap-2">
+          
           <Plus className="w-4 h-4" />
           <span>Add Vendor</span>
         </button>
@@ -81,17 +80,17 @@ export const VendorsView: React.FC<VendorsViewProps> = ({ vendors, onAddVendor }
           placeholder="Search vendors or service category..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+          className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        
       </div>
 
       {/* Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredVendors.map((v) => (
-          <div
-            key={v.id}
-            className="p-5 bg-white rounded-2xl border border-slate-200 shadow-xs space-y-4 hover:border-blue-300 transition-colors"
-          >
+        {filteredVendors.map((v) =>
+        <div
+          key={v.id}
+          className="p-5 bg-white rounded-2xl border border-slate-200 shadow-xs space-y-4 hover:border-blue-300 transition-colors">
+          
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 font-bold">
@@ -128,84 +127,84 @@ export const VendorsView: React.FC<VendorsViewProps> = ({ vendors, onAddVendor }
               </div>
             </div>
           </div>
-        ))}
+        )}
       </div>
 
       {/* Add Vendor Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+      {showAddModal &&
+      <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 border border-slate-200 shadow-xl">
             <h3 className="text-lg font-extrabold text-slate-900">Add New Vendor</h3>
 
-            {duplicateError && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs font-bold text-red-700 flex items-center justify-between">
+            {duplicateError &&
+          <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs font-bold text-red-700 flex items-center justify-between">
                 <span>{duplicateError}</span>
                 <button
-                  type="button"
-                  onClick={() => setDuplicateError(null)}
-                  className="text-red-500 hover:text-red-800 font-bold ml-2"
-                >
+              type="button"
+              onClick={() => setDuplicateError(null)}
+              className="text-red-500 hover:text-red-800 font-bold ml-2">
+              
                   ✕
                 </button>
               </div>
-            )}
+          }
 
             <form onSubmit={handleSubmit} className="space-y-3">
               <div>
                 <label className="text-xs font-semibold text-slate-700">Vendor Name</label>
                 <input
-                  type="text"
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="AWS or Google Cloud"
-                  className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl text-xs"
-                />
+                type="text"
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="AWS or Google Cloud"
+                className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl text-xs" />
+              
               </div>
 
               <div>
                 <label className="text-xs font-semibold text-slate-700">Category</label>
                 <input
-                  type="text"
-                  required
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  placeholder="Cloud Infrastructure"
-                  className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl text-xs"
-                />
+                type="text"
+                required
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                placeholder="Cloud Infrastructure"
+                className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl text-xs" />
+              
               </div>
 
               <div>
                 <label className="text-xs font-semibold text-slate-700">Contact Email</label>
                 <input
-                  type="email"
-                  required
-                  value={contactEmail}
-                  onChange={(e) => setContactEmail(e.target.value)}
-                  placeholder="billing@vendor.com"
-                  className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl text-xs"
-                />
+                type="email"
+                required
+                value={contactEmail}
+                onChange={(e) => setContactEmail(e.target.value)}
+                placeholder="billing@vendor.com"
+                className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl text-xs" />
+              
               </div>
 
               <div className="flex gap-2 pt-3 justify-end">
                 <button
-                  type="button"
-                  onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200"
-                >
+                type="button"
+                onClick={() => setShowAddModal(false)}
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200">
+                
                   Cancel
                 </button>
                 <button
-                  type="submit"
-                  className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700"
-                >
+                type="submit"
+                className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700">
+                
                   Save Vendor
                 </button>
               </div>
             </form>
           </div>
         </div>
-      )}
-    </div>
-  );
+      }
+    </div>);
+
 };

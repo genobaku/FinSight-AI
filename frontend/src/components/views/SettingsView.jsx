@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { UserProfile } from '../../types';
 import {
   User,
   Building2,
@@ -12,22 +11,22 @@ import {
   RefreshCw,
   Upload,
   ExternalLink,
-  Code2,
-} from 'lucide-react';
+  Code2 } from
+'lucide-react';
 import { isSupabaseConfigured } from '../../lib/supabase';
 import { isCloudinaryConfigured, uploadToCloudinary } from '../../lib/cloudinary';
 import { SUPABASE_SQL_SCHEMA_SCRIPT } from '../../lib/supabaseService';
 
-interface SettingsViewProps {
-  user: UserProfile;
-  onUpdateUser: (updated: Partial<UserProfile>) => void;
-  onSyncSupabase?: () => Promise<{ success: boolean; message: string }>;
-}
 
-export const SettingsView: React.FC<SettingsViewProps> = ({
+
+
+
+
+
+export const SettingsView = ({
   user,
   onUpdateUser,
-  onSyncSupabase,
+  onSyncSupabase
 }) => {
   const [name, setName] = useState(user.name);
   const [email, setEmail] = useState(user.email);
@@ -40,15 +39,15 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   // Supabase & Cloudinary state
   const [copiedSchema, setCopiedSchema] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
-  const [syncStatus, setSyncStatus] = useState<string | null>(null);
+  const [syncStatus, setSyncStatus] = useState(null);
 
-  const [testImageResult, setTestImageResult] = useState<string | null>(null);
+  const [testImageResult, setTestImageResult] = useState(null);
   const [isUploadingTest, setIsUploadingTest] = useState(false);
 
   const supabaseConfigured = isSupabaseConfigured();
   const cloudinaryConfigured = isCloudinaryConfigured();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     onUpdateUser({
       name,
@@ -56,7 +55,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       companyName,
       companyAddress,
       taxRegistrationNumber,
-      defaultCurrency: currency,
+      defaultCurrency: currency
     });
     setIsSaved(true);
     setTimeout(() => setIsSaved(false), 2000);
@@ -77,7 +76,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     setIsSyncing(false);
   };
 
-  const handleTestCloudinaryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleTestCloudinaryUpload = async (e) => {
     if (e.target.files && e.target.files[0]) {
       setIsUploadingTest(true);
       try {
@@ -116,8 +115,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl text-xs"
-              />
+                className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl text-xs" />
+              
             </div>
             <div>
               <label className="font-semibold text-slate-700">Email Address</label>
@@ -125,8 +124,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl text-xs"
-              />
+                className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl text-xs" />
+              
             </div>
           </div>
         </div>
@@ -145,8 +144,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 type="text"
                 value={companyName}
                 onChange={(e) => setCompanyName(e.target.value)}
-                className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl text-xs"
-              />
+                className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl text-xs" />
+              
             </div>
 
             <div>
@@ -155,8 +154,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 type="text"
                 value={companyAddress}
                 onChange={(e) => setCompanyAddress(e.target.value)}
-                className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl text-xs"
-              />
+                className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl text-xs" />
+              
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -166,8 +165,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   type="text"
                   value={taxRegistrationNumber}
                   onChange={(e) => setTaxRegistrationNumber(e.target.value)}
-                  className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl text-xs"
-                />
+                  className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl text-xs" />
+                
               </div>
 
               <div>
@@ -175,8 +174,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 <select
                   value={currency}
                   onChange={(e) => setCurrency(e.target.value)}
-                  className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl text-xs"
-                >
+                  className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl text-xs">
+                  
                   <option value="USD">USD ($)</option>
                   <option value="EUR">EUR (€)</option>
                   <option value="GBP">GBP (£)</option>
@@ -196,11 +195,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             </div>
             <span
               className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
-                supabaseConfigured
-                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                  : 'bg-amber-50 text-amber-700 border border-amber-200'
-              }`}
-            >
+              supabaseConfigured ?
+              'bg-emerald-50 text-emerald-700 border border-emerald-200' :
+              'bg-amber-50 text-amber-700 border border-amber-200'}`
+              }>
+              
               {supabaseConfigured ? 'Connected & Active' : 'Fallback Local Mode'}
             </span>
           </div>
@@ -214,30 +213,30 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <button
               type="button"
               onClick={handleCopySql}
-              className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center gap-1.5 transition-colors"
-            >
+              className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center gap-1.5 transition-colors">
+              
               {copiedSchema ? <Check className="w-4 h-4 text-emerald-600" /> : <Code2 className="w-4 h-4 text-slate-600" />}
               <span>{copiedSchema ? 'SQL Schema Copied!' : 'Copy Supabase SQL Schema'}</span>
             </button>
 
-            {onSyncSupabase && (
-              <button
-                type="button"
-                onClick={handleSyncData}
-                disabled={isSyncing}
-                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold text-xs flex items-center gap-1.5 shadow-xs transition-all"
-              >
+            {onSyncSupabase &&
+            <button
+              type="button"
+              onClick={handleSyncData}
+              disabled={isSyncing}
+              className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold text-xs flex items-center gap-1.5 shadow-xs transition-all">
+              
                 {isSyncing ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Database className="w-4 h-4" />}
                 <span>Sync Data to Supabase</span>
               </button>
-            )}
+            }
           </div>
 
-          {syncStatus && (
-            <p className="text-xs font-semibold text-emerald-700 bg-emerald-50 p-3 rounded-xl border border-emerald-200">
+          {syncStatus &&
+          <p className="text-xs font-semibold text-emerald-700 bg-emerald-50 p-3 rounded-xl border border-emerald-200">
               {syncStatus}
             </p>
-          )}
+          }
         </div>
 
         {/* Cloudinary CDN Image Upload Section */}
@@ -249,11 +248,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             </div>
             <span
               className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
-                cloudinaryConfigured
-                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                  : 'bg-blue-50 text-blue-700 border border-blue-200'
-              }`}
-            >
+              cloudinaryConfigured ?
+              'bg-emerald-50 text-emerald-700 border border-emerald-200' :
+              'bg-blue-50 text-blue-700 border border-blue-200'}`
+              }>
+              
               {cloudinaryConfigured ? 'Direct Cloudinary Active' : 'Smart API Proxy Active'}
             </span>
           </div>
@@ -269,42 +268,42 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               <input type="file" accept="image/*" onChange={handleTestCloudinaryUpload} className="hidden" />
             </label>
 
-            {testImageResult && (
-              <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+            {testImageResult &&
+            <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
                 <p className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Upload Test Passed!
                 </p>
                 <a
-                  href={testImageResult}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-xs text-blue-600 font-medium underline flex items-center gap-1 truncate"
-                >
+                href={testImageResult}
+                target="_blank"
+                rel="noreferrer"
+                className="text-xs text-blue-600 font-medium underline flex items-center gap-1 truncate">
+                
                   <span>{testImageResult}</span>
                   <ExternalLink className="w-3 h-3 flex-shrink-0" />
                 </a>
               </div>
-            )}
+            }
           </div>
         </div>
 
         {/* Save Button */}
         <div className="flex items-center justify-between">
-          {isSaved && (
-            <span className="text-xs font-bold text-emerald-600 flex items-center gap-1.5">
+          {isSaved &&
+          <span className="text-xs font-bold text-emerald-600 flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4" /> Settings updated successfully!
             </span>
-          )}
+          }
 
           <button
             type="submit"
-            className="ml-auto px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center gap-2 shadow-xs transition-all"
-          >
+            className="ml-auto px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center gap-2 shadow-xs transition-all">
+            
             <Save className="w-4 h-4" />
             <span>Save Settings</span>
           </button>
         </div>
       </form>
-    </div>
-  );
+    </div>);
+
 };

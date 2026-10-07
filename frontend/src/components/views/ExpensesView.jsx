@@ -1,28 +1,27 @@
 import React, { useState } from 'react';
 import { CreditCard, Plus, Filter, Search, Download, Trash2, CheckCircle2, DollarSign } from 'lucide-react';
-import { Expense, Vendor } from '../../types';
 import { Badge } from '../common/Badge';
 
-interface ExpensesViewProps {
-  expenses: Expense[];
-  vendors: Vendor[];
-  onAddExpense: (expense: Omit<Expense, 'id'>) => void;
-}
 
-export const ExpensesView: React.FC<ExpensesViewProps> = ({
+
+
+
+
+
+export const ExpensesView = ({
   expenses,
   vendors,
-  onAddExpense,
+  onAddExpense
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('All');
+  const [selectedCategory, setSelectedCategory] = useState('All');
   const [showAddModal, setShowAddModal] = useState(false);
-  const [duplicateError, setDuplicateError] = useState<string | null>(null);
+  const [duplicateError, setDuplicateError] = useState(null);
 
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('Cloud Infrastructure');
   const [vendorName, setVendorName] = useState('Amazon Web Services (AWS)');
-  const [amount, setAmount] = useState<number>(150);
+  const [amount, setAmount] = useState(150);
   const [date, setDate] = useState('2026-08-06');
   const [paymentMethod, setPaymentMethod] = useState('Corporate Card');
 
@@ -30,23 +29,23 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
 
   const filteredExpenses = expenses.filter((e) => {
     const matchesSearch =
-      e.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      e.vendorName.toLowerCase().includes(searchTerm.toLowerCase());
+    e.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    e.vendorName.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'All' || e.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
   const totalSpent = expenses.reduce((sum, e) => sum + e.amount, 0);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
 
     const isDuplicate = expenses.some(
       (exp) =>
-        exp.title.toLowerCase().trim() === title.toLowerCase().trim() &&
-        exp.vendorName.toLowerCase().trim() === vendorName.toLowerCase().trim() &&
-        exp.amount === amount &&
-        exp.date === date
+      exp.title.toLowerCase().trim() === title.toLowerCase().trim() &&
+      exp.vendorName.toLowerCase().trim() === vendorName.toLowerCase().trim() &&
+      exp.amount === amount &&
+      exp.date === date
     );
 
     if (isDuplicate) {
@@ -63,7 +62,7 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
       tax: Math.round(amount * 0.08 * 100) / 100,
       date,
       paymentMethod,
-      status: 'Approved',
+      status: 'Approved'
     });
     setShowAddModal(false);
     setTitle('');
@@ -88,8 +87,8 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
 
           <button
             onClick={() => setShowAddModal(true)}
-            className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs transition-all flex items-center gap-2"
-          >
+            className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs transition-all flex items-center gap-2">
+            
             <Plus className="w-4 h-4" />
             <span>Log Expense</span>
           </button>
@@ -105,24 +104,24 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
             placeholder="Filter expenses by vendor or title..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+            className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors whitespace-nowrap ${
-                selectedCategory === cat
-                  ? 'bg-blue-600 text-white shadow-xs'
-                  : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
-              }`}
-            >
+          {categories.map((cat) =>
+          <button
+            key={cat}
+            onClick={() => setSelectedCategory(cat)}
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors whitespace-nowrap ${
+            selectedCategory === cat ?
+            'bg-blue-600 text-white shadow-xs' :
+            'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'}`
+            }>
+            
               {cat}
             </button>
-          ))}
+          )}
         </div>
       </div>
 
@@ -142,8 +141,8 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 font-medium">
-              {filteredExpenses.map((exp) => (
-                <tr key={exp.id} className="hover:bg-slate-50/80 transition-colors">
+              {filteredExpenses.map((exp) =>
+              <tr key={exp.id} className="hover:bg-slate-50/80 transition-colors">
                   <td className="py-3.5 px-4 font-bold text-slate-900">{exp.title}</td>
                   <td className="py-3.5 px-4 text-slate-700">{exp.vendorName}</td>
                   <td className="py-3.5 px-4 text-slate-500">{exp.category}</td>
@@ -154,89 +153,89 @@ export const ExpensesView: React.FC<ExpensesViewProps> = ({
                     <Badge status={exp.status} />
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
       </div>
 
       {/* Modal to log expense */}
-      {showAddModal && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+      {showAddModal &&
+      <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 border border-slate-200 shadow-xl">
             <h3 className="text-lg font-extrabold text-slate-900">Log New Expense</h3>
 
-            {duplicateError && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs font-bold text-red-700 flex items-center justify-between">
+            {duplicateError &&
+          <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs font-bold text-red-700 flex items-center justify-between">
                 <span>{duplicateError}</span>
                 <button
-                  type="button"
-                  onClick={() => setDuplicateError(null)}
-                  className="text-red-500 hover:text-red-800 font-bold ml-2"
-                >
+              type="button"
+              onClick={() => setDuplicateError(null)}
+              className="text-red-500 hover:text-red-800 font-bold ml-2">
+              
                   ✕
                 </button>
               </div>
-            )}
+          }
 
             <form onSubmit={handleSubmit} className="space-y-3">
               <div>
                 <label className="text-xs font-semibold text-slate-700">Expense Title</label>
                 <input
-                  type="text"
-                  required
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="e.g. Server hosting upgrade"
-                  className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl text-xs"
-                />
+                type="text"
+                required
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="e.g. Server hosting upgrade"
+                className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl text-xs" />
+              
               </div>
 
               <div>
                 <label className="text-xs font-semibold text-slate-700">Vendor</label>
                 <select
-                  value={vendorName}
-                  onChange={(e) => setVendorName(e.target.value)}
-                  className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl text-xs"
-                >
-                  {vendors.map((v) => (
-                    <option key={v.id} value={v.name}>
+                value={vendorName}
+                onChange={(e) => setVendorName(e.target.value)}
+                className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl text-xs">
+                
+                  {vendors.map((v) =>
+                <option key={v.id} value={v.name}>
                       {v.name}
                     </option>
-                  ))}
+                )}
                 </select>
               </div>
 
               <div>
                 <label className="text-xs font-semibold text-slate-700">Amount ($)</label>
                 <input
-                  type="number"
-                  required
-                  value={amount}
-                  onChange={(e) => setAmount(parseFloat(e.target.value))}
-                  className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl text-xs"
-                />
+                type="number"
+                required
+                value={amount}
+                onChange={(e) => setAmount(parseFloat(e.target.value))}
+                className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl text-xs" />
+              
               </div>
 
               <div className="flex gap-2 pt-3 justify-end">
                 <button
-                  type="button"
-                  onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200"
-                >
+                type="button"
+                onClick={() => setShowAddModal(false)}
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200">
+                
                   Cancel
                 </button>
                 <button
-                  type="submit"
-                  className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700"
-                >
+                type="submit"
+                className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700">
+                
                   Save Expense
                 </button>
               </div>
             </form>
           </div>
         </div>
-      )}
-    </div>
-  );
+      }
+    </div>);
+
 };

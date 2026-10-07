@@ -2,24 +2,23 @@ import React from 'react';
 import { Printer, Download, CheckCircle, Copy, Mail, Building, FileText, Zap } from 'lucide-react';
 import { Modal } from '../common/Modal';
 import { Badge } from '../common/Badge';
-import { Invoice, InvoiceStatus, UserProfile } from '../../types';
 
-interface InvoicePreviewModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  invoice: Invoice | null;
-  user: UserProfile;
-  onMarkPaid: (id: string) => void;
-  onDuplicate: (invoice: Invoice) => void;
-}
 
-export const InvoicePreviewModal: React.FC<InvoicePreviewModalProps> = ({
+
+
+
+
+
+
+
+
+export const InvoicePreviewModal = ({
   isOpen,
   onClose,
   invoice,
   user,
   onMarkPaid,
-  onDuplicate,
+  onDuplicate
 }) => {
   if (!invoice) return null;
 
@@ -66,28 +65,28 @@ TOTAL DUE: ${invoice.currency}${invoice.total}
           </div>
 
           <div className="flex items-center gap-2">
-            {invoice.status !== 'Paid' && (
-              <button
-                onClick={() => onMarkPaid(invoice.id)}
-                className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-colors flex items-center gap-1.5"
-              >
+            {invoice.status !== 'Paid' &&
+            <button
+              onClick={() => onMarkPaid(invoice.id)}
+              className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-colors flex items-center gap-1.5">
+              
                 <CheckCircle className="w-3.5 h-3.5" />
                 <span>Mark Paid</span>
               </button>
-            )}
+            }
 
             <button
               onClick={handlePrint}
-              className="px-3 py-1.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-semibold transition-colors flex items-center gap-1.5"
-            >
+              className="px-3 py-1.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-semibold transition-colors flex items-center gap-1.5">
+              
               <Printer className="w-3.5 h-3.5" />
               <span>Print</span>
             </button>
 
             <button
               onClick={handleDownloadPDF}
-              className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-colors flex items-center gap-1.5 shadow-xs"
-            >
+              className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-colors flex items-center gap-1.5 shadow-xs">
+              
               <Download className="w-3.5 h-3.5" />
               <span>Download Document</span>
             </button>
@@ -146,8 +145,8 @@ TOTAL DUE: ${invoice.currency}${invoice.total}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 font-medium text-slate-800">
-                {invoice.items.map((item, idx) => (
-                  <tr key={idx}>
+                {invoice.items.map((item, idx) =>
+                <tr key={idx}>
                     <td className="p-3 font-semibold">{item.description}</td>
                     <td className="p-3 text-center">{item.quantity}</td>
                     <td className="p-3 text-right">
@@ -159,7 +158,7 @@ TOTAL DUE: ${invoice.currency}${invoice.total}
                       {item.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
@@ -194,13 +193,13 @@ TOTAL DUE: ${invoice.currency}${invoice.total}
           </div>
 
           {/* Notes */}
-          {invoice.notes && (
-            <div className="pt-4 border-t border-slate-100 text-xs text-slate-500 italic">
+          {invoice.notes &&
+          <div className="pt-4 border-t border-slate-100 text-xs text-slate-500 italic">
               Note: {invoice.notes}
             </div>
-          )}
+          }
         </div>
       </div>
-    </Modal>
-  );
+    </Modal>);
+
 };

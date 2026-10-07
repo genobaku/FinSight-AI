@@ -1,12 +1,12 @@
 import React from 'react';
 
-interface BadgeProps {
-  status: string;
-  className?: string;
-}
 
-export const Badge: React.FC<BadgeProps> = ({ status, className = '' }) => {
-  const getColors = (val: string) => {
+
+
+
+
+export const Badge = ({ status, className = '' }) => {
+  const getColors = (val) => {
     const s = val.toLowerCase();
     if (s === 'paid' || s === 'verified' || s === 'active' || s === 'approved' || s === 'success') {
       return 'bg-emerald-50 text-emerald-700 border-emerald-200/60 ring-emerald-500/10';
@@ -27,10 +27,10 @@ export const Badge: React.FC<BadgeProps> = ({ status, className = '' }) => {
     <span
       className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border ring-1 ring-inset transition-colors ${getColors(
         status
-      )} ${className}`}
-    >
+      )} ${className}`}>
+      
       <span className="w-1.5 h-1.5 rounded-full bg-current opacity-70" />
       {status}
-    </span>
-  );
+    </span>);
+
 };

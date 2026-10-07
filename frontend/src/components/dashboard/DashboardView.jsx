@@ -29,16 +29,7 @@
 // } from 'recharts';
 // import { StatCard } from '../common/StatCard';
 // import { Badge } from '../common/Badge';
-// import {
-//   AiInsight,
-//   Expense,
-//   FinancialMetric,
-//   Invoice,
-//   Receipt,
-//   TabType,
-//   UserProfile,
-// } from '../../types';
-// import { EXPENSE_CATEGORY_DATA, MONTHLY_CASHFLOW_DATA } from '../../data/mockData';
+// // import { EXPENSE_CATEGORY_DATA, MONTHLY_CASHFLOW_DATA } from '../../data/mockData';
 
 // interface DashboardViewProps {
 //   user: UserProfile;
@@ -379,8 +370,8 @@ import {
   Bot,
   ExternalLink,
   Sparkles,
-  AlertCircle,
-} from 'lucide-react';
+  AlertCircle } from
+'lucide-react';
 
 import {
   AreaChart,
@@ -392,36 +383,28 @@ import {
   ResponsiveContainer,
   PieChart,
   Pie,
-  Cell,
-} from 'recharts';
+  Cell } from
+'recharts';
 
 import { StatCard } from '../common/StatCard';
 import { Badge } from '../common/Badge';
 
-import {
-  AiInsight,
-  Expense,
-  Invoice,
-  Receipt,
-  TabType,
-  UserProfile,
-} from '../../types';
 
 import { computeRealAnalytics } from '../../lib/analyticsEngine';
 
-interface DashboardViewProps {
-  user: UserProfile;
-  invoices: Invoice[];
-  expenses: Expense[];
-  receipts: Receipt[];
-  aiInsights: AiInsight[];
-  onSelectTab: (tab: TabType) => void;
-  onOpenNewInvoice: () => void;
-  onOpenReceiptScan: () => void;
-  onSelectInvoice: (invoice: Invoice) => void;
-}
 
-export const DashboardView: React.FC<DashboardViewProps> = ({
+
+
+
+
+
+
+
+
+
+
+
+export const DashboardView = ({
   user,
   invoices = [],
   expenses = [],
@@ -430,17 +413,17 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onSelectTab,
   onOpenNewInvoice,
   onOpenReceiptScan,
-  onSelectInvoice,
+  onSelectInvoice
 }) => {
   const analytics = computeRealAnalytics(invoices, expenses, receipts);
   const { totalRevenue, totalExpenses, netProfit, profitMargin, cashFlow, expenseBreakdown } = analytics;
 
-  const outstandingAmount = invoices
-    .filter(
-      (invoice) =>
-        invoice.status === 'Pending' || invoice.status === 'Overdue'
-    )
-    .reduce((sum, invoice) => sum + (invoice.total || 0), 0);
+  const outstandingAmount = invoices.
+  filter(
+    (invoice) =>
+    invoice.status === 'Pending' || invoice.status === 'Overdue'
+  ).
+  reduce((sum, invoice) => sum + (invoice.total || 0), 0);
 
   const margin = profitMargin.toFixed(1);
 
@@ -458,8 +441,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     <div className="space-y-6 pb-10">
 
       {/* =====================================================
-          PAGE HEADER
-      ====================================================== */}
+           PAGE HEADER
+        ====================================================== */}
 
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
 
@@ -490,8 +473,17 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               text-sm font-medium text-slate-700
               hover:bg-slate-50
               transition-colors
-            "
-          >
+            ">
+
+
+
+
+
+
+
+
+
+            
             <Scan className="w-4 h-4" />
             Scan Receipt
           </button>
@@ -507,8 +499,17 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               text-sm font-medium
               hover:bg-slate-800
               transition-colors
-            "
-          >
+            ">
+
+
+
+
+
+
+
+
+
+            
             <Plus className="w-4 h-4" />
             New Invoice
           </button>
@@ -518,8 +519,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
 
       {/* =====================================================
-          QUICK SUMMARY
-      ====================================================== */}
+           QUICK SUMMARY
+        ====================================================== */}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 
@@ -594,8 +595,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
 
       {/* =====================================================
-          KPI CARDS
-      ====================================================== */}
+           KPI CARDS
+        ====================================================== */}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 
@@ -604,12 +605,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           value={`$${totalRevenue.toLocaleString()}`}
           trend={{
             value: '+18.4% vs last month',
-            isPositive: true,
+            isPositive: true
           }}
           icon={DollarSign}
           iconBgColor="bg-emerald-50"
-          iconTextColor="text-emerald-600"
-        />
+          iconTextColor="text-emerald-600" />
+        
 
 
         <StatCard
@@ -617,12 +618,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           value={`$${totalExpenses.toLocaleString()}`}
           trend={{
             value: '-4.2% optimized',
-            isPositive: true,
+            isPositive: true
           }}
           icon={CreditCard}
           iconBgColor="bg-blue-50"
-          iconTextColor="text-blue-600"
-        />
+          iconTextColor="text-blue-600" />
+        
 
 
         <StatCard
@@ -630,13 +631,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           value={`$${outstandingAmount.toLocaleString()}`}
           subtitle={`${invoices.filter(
             (invoice) =>
-              invoice.status === 'Pending' ||
-              invoice.status === 'Overdue'
+            invoice.status === 'Pending' ||
+            invoice.status === 'Overdue'
           ).length} open invoices`}
           icon={Clock}
           iconBgColor="bg-amber-50"
-          iconTextColor="text-amber-600"
-        />
+          iconTextColor="text-amber-600" />
+        
 
 
         <StatCard
@@ -644,19 +645,19 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           value={`${margin}%`}
           trend={{
             value: 'Current margin',
-            isPositive: true,
+            isPositive: true
           }}
           icon={TrendingUp}
           iconBgColor="bg-slate-100"
-          iconTextColor="text-slate-700"
-        />
+          iconTextColor="text-slate-700" />
+        
 
       </div>
 
 
       {/* =====================================================
-          MAIN CONTENT
-      ====================================================== */}
+           MAIN CONTENT
+        ====================================================== */}
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
 
@@ -678,8 +679,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
             <button
               onClick={() => onSelectTab('analytics')}
-              className="text-xs font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1"
-            >
+              className="text-xs font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1">
+              
               View analytics
               <ArrowRight className="w-3 h-3" />
             </button>
@@ -688,100 +689,100 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
 
           <div className="h-72 p-4">
-            {cashFlow.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-center p-6 bg-slate-50/50 rounded-lg border border-dashed border-slate-200">
+            {cashFlow.length === 0 ?
+            <div className="h-full flex flex-col items-center justify-center text-center p-6 bg-slate-50/50 rounded-lg border border-dashed border-slate-200">
                 <AlertCircle className="w-8 h-8 text-slate-400 mb-2" />
                 <p className="text-sm font-semibold text-slate-700">Not enough data to generate cash-flow analytics.</p>
                 <p className="text-xs text-slate-500 mt-1 max-w-xs">
                   Create invoices or record expenses to automatically populate cash flow trends over time.
                 </p>
-              </div>
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
+              </div> :
+
+            <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
-                  data={cashFlow}
-                  margin={{
-                    top: 10,
-                    right: 10,
-                    left: -20,
-                    bottom: 0,
-                  }}
-                >
+                data={cashFlow}
+                margin={{
+                  top: 10,
+                  right: 10,
+                  left: -20,
+                  bottom: 0
+                }}>
+                
                   <defs>
                     <linearGradient
-                      id="revenueFill"
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
-                    >
+                    id="revenueFill"
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1">
+                    
                       <stop
-                        offset="0%"
-                        stopColor="#2563EB"
-                        stopOpacity={0.25}
-                      />
+                      offset="0%"
+                      stopColor="#2563EB"
+                      stopOpacity={0.25} />
+                    
                       <stop
-                        offset="100%"
-                        stopColor="#2563EB"
-                        stopOpacity={0}
-                      />
+                      offset="100%"
+                      stopColor="#2563EB"
+                      stopOpacity={0} />
+                    
                     </linearGradient>
                   </defs>
 
                   <CartesianGrid
-                    strokeDasharray="3 3"
-                    vertical={false}
-                    stroke="#E2E8F0"
-                  />
+                  strokeDasharray="3 3"
+                  vertical={false}
+                  stroke="#E2E8F0" />
+                
 
                   <XAxis
-                    dataKey="month"
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{
-                      fontSize: 11,
-                      fill: '#64748B',
-                    }}
-                  />
+                  dataKey="month"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{
+                    fontSize: 11,
+                    fill: '#64748B'
+                  }} />
+                
 
                   <YAxis
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{
-                      fontSize: 11,
-                      fill: '#64748B',
-                    }}
-                  />
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{
+                    fontSize: 11,
+                    fill: '#64748B'
+                  }} />
+                
 
                   <Tooltip
-                    contentStyle={{
-                      borderRadius: '8px',
-                      border: '1px solid #E2E8F0',
-                      fontSize: '12px',
-                    }}
-                    formatter={(val: any) => [`$${Number(val).toLocaleString()}`, '']}
-                  />
+                  contentStyle={{
+                    borderRadius: '8px',
+                    border: '1px solid #E2E8F0',
+                    fontSize: '12px'
+                  }}
+                  formatter={(val) => [`$${Number(val).toLocaleString()}`, '']} />
+                
 
                   <Area
-                    type="monotone"
-                    dataKey="revenue"
-                    name="Revenue"
-                    stroke="#2563EB"
-                    strokeWidth={2}
-                    fill="url(#revenueFill)"
-                  />
+                  type="monotone"
+                  dataKey="revenue"
+                  name="Revenue"
+                  stroke="#2563EB"
+                  strokeWidth={2}
+                  fill="url(#revenueFill)" />
+                
 
                   <Area
-                    type="monotone"
-                    dataKey="expenses"
-                    name="Expenses"
-                    stroke="#94A3B8"
-                    strokeWidth={2}
-                    fill="transparent"
-                  />
+                  type="monotone"
+                  dataKey="expenses"
+                  name="Expenses"
+                  stroke="#94A3B8"
+                  strokeWidth={2}
+                  fill="transparent" />
+                
                 </AreaChart>
               </ResponsiveContainer>
-            )}
+            }
           </div>
 
         </div>
@@ -806,58 +807,58 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
           <div className="p-4">
 
-            {expenseBreakdown.length === 0 ? (
-              <div className="h-64 flex flex-col items-center justify-center text-center p-6 bg-slate-50/50 rounded-lg border border-dashed border-slate-200">
+            {expenseBreakdown.length === 0 ?
+            <div className="h-64 flex flex-col items-center justify-center text-center p-6 bg-slate-50/50 rounded-lg border border-dashed border-slate-200">
                 <AlertCircle className="w-8 h-8 text-slate-400 mb-2" />
                 <p className="text-sm font-semibold text-slate-700">No expense data available.</p>
                 <p className="text-xs text-slate-500 mt-1 max-w-xs">
                   Scan receipts or log vendor expenses to generate category breakdowns.
                 </p>
-              </div>
-            ) : (
-              <>
+              </div> :
+
+            <>
                 <div className="h-48">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
-                        data={expenseBreakdown}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={50}
-                        outerRadius={72}
-                        paddingAngle={3}
-                        dataKey="value"
-                      >
+                      data={expenseBreakdown}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={50}
+                      outerRadius={72}
+                      paddingAngle={3}
+                      dataKey="value">
+                      
                         {expenseBreakdown.map(
-                          (entry, index) => (
-                            <Cell
-                              key={`cell-${index}`}
-                              fill={entry.color}
-                            />
-                          )
-                        )}
+                        (entry, index) =>
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={entry.color} />
+
+
+                      )}
                       </Pie>
 
-                      <Tooltip formatter={(val: any) => [`$${Number(val).toLocaleString()}`, 'Amount']} />
+                      <Tooltip formatter={(val) => [`$${Number(val).toLocaleString()}`, 'Amount']} />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
 
                 <div className="space-y-2 mt-2">
-                  {expenseBreakdown
-                    .slice(0, 4)
-                    .map((item, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between text-xs"
-                      >
+                  {expenseBreakdown.
+                slice(0, 4).
+                map((item, index) =>
+                <div
+                  key={index}
+                  className="flex items-center justify-between text-xs">
+                  
                         <div className="flex items-center gap-2">
                           <span
-                            className="w-2.5 h-2.5 rounded-full"
-                            style={{
-                              backgroundColor: item.color,
-                            }}
-                          />
+                      className="w-2.5 h-2.5 rounded-full"
+                      style={{
+                        backgroundColor: item.color
+                      }} />
+                    
 
                           <span className="text-slate-600">
                             {item.name}
@@ -868,10 +869,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                           ${item.value.toLocaleString()}
                         </span>
                       </div>
-                    ))}
+                )}
                 </div>
               </>
-            )}
+            }
 
           </div>
 
@@ -881,8 +882,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
 
       {/* =====================================================
-          RECENT INVOICES
-      ====================================================== */}
+           RECENT INVOICES
+        ====================================================== */}
 
       <div className="bg-white border border-slate-200 rounded-xl">
 
@@ -900,8 +901,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
           <button
             onClick={() => onSelectTab('invoices')}
-            className="text-xs font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1"
-          >
+            className="text-xs font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1">
+            
             View all
             <ArrowRight className="w-3 h-3" />
           </button>
@@ -946,12 +947,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
             <tbody>
 
-              {recentInvoices.map((invoice) => (
+              {recentInvoices.map((invoice) =>
 
-                <tr
-                  key={invoice.id}
-                  className="border-b border-slate-50 hover:bg-slate-50 transition-colors"
-                >
+              <tr
+                key={invoice.id}
+                className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
+                
 
                   <td className="px-5 py-4 text-sm font-semibold text-slate-900">
                     {invoice.invoiceNumber}
@@ -976,12 +977,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   <td className="px-5 py-4 text-right">
 
                     <button
-                      onClick={() =>
-                        onSelectInvoice(invoice)
-                      }
-                      className="p-1.5 rounded-md hover:bg-slate-100 text-slate-500 hover:text-slate-900"
-                      title="View invoice"
-                    >
+                    onClick={() =>
+                    onSelectInvoice(invoice)
+                    }
+                    className="p-1.5 rounded-md hover:bg-slate-100 text-slate-500 hover:text-slate-900"
+                    title="View invoice">
+                    
                       <ExternalLink className="w-4 h-4" />
                     </button>
 
@@ -989,7 +990,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
                 </tr>
 
-              ))}
+              )}
 
             </tbody>
 
@@ -1001,8 +1002,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
 
       {/* =====================================================
-          BOTTOM INFORMATION
-      ====================================================== */}
+           BOTTOM INFORMATION
+        ====================================================== */}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
 
@@ -1100,8 +1101,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
             <button
               onClick={() => onSelectTab('copilot')}
-              className="text-xs font-medium text-blue-600 hover:text-blue-700"
-            >
+              className="text-xs font-medium text-blue-600 hover:text-blue-700">
+              
               Open Copilot
             </button>
 
@@ -1110,12 +1111,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
           <div className="mt-4 space-y-3">
 
-            {aiInsights.slice(0, 3).map((insight) => (
+            {aiInsights.slice(0, 3).map((insight) =>
 
-              <div
-                key={insight.id}
-                className="flex gap-3 p-3 rounded-lg bg-slate-50 border border-slate-100"
-              >
+            <div
+              key={insight.id}
+              className="flex gap-3 p-3 rounded-lg bg-slate-50 border border-slate-100">
+              
 
                 <div className="mt-0.5">
 
@@ -1145,7 +1146,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
               </div>
 
-            ))}
+            )}
 
           </div>
 
@@ -1153,26 +1154,25 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
       </div>
 
-    </div>
-  );
+    </div>);
+
 };
 
 
 /* Small local icon component */
 
-const FileTextIcon = () => (
-  <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
+const FileTextIcon = () =>
+<div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
     <svg
-      className="w-4 h-4 text-slate-600"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-    >
+    className="w-4 h-4 text-slate-600"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2">
+    
       <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
       <polyline points="14 2 14 8 20 8" />
       <line x1="16" y1="13" x2="8" y2="13" />
       <line x1="16" y1="17" x2="8" y2="17" />
     </svg>
-  </div>
-);
+  </div>;

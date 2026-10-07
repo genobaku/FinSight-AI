@@ -2,16 +2,16 @@ import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Zap, ArrowRight, Lock, Mail, User, ShieldCheck, Check } from 'lucide-react';
 
-interface LoginPageProps {
-  onSuccess?: () => void;
-  onLoginSuccess?: () => void;
-  onBackToLanding?: () => void;
-}
 
-export const LoginPage: React.FC<LoginPageProps> = ({
+
+
+
+
+
+export const LoginPage = ({
   onSuccess,
   onLoginSuccess,
-  onBackToLanding,
+  onBackToLanding
 }) => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('alex.morgan@finsight.ai');
@@ -21,7 +21,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   const [rememberMe, setRememberMe] = useState(true);
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     setLoading(true);
     setTimeout(() => {
@@ -48,8 +48,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                   onSuccess();
                 }
               }}
-              className="inline-flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-white mb-8 transition-colors"
-            >
+              className="inline-flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-white mb-8 transition-colors">
+              
               ← Back to Landing
             </button>
 
@@ -66,14 +66,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({
               {isSignUp ? 'Create your FinSight AI account' : 'Welcome back to FinSight AI'}
             </h2>
             <p className="text-xs text-slate-400 mt-1">
-              {isSignUp
-                ? 'Join 12,800+ small businesses managing smart financials.'
-                : 'Sign in to access your invoicing and financial AI copilot.'}
+              {isSignUp ?
+              'Join 12,800+ small businesses managing smart financials.' :
+              'Sign in to access your invoicing and financial AI copilot.'}
             </p>
 
             <form onSubmit={handleSubmit} className="mt-8 space-y-4">
-              {isSignUp && (
-                <>
+              {isSignUp &&
+              <>
                   <div>
                     <label className="block text-xs font-semibold text-slate-300 mb-1.5">
                       Full Name
@@ -81,13 +81,13 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                     <div className="relative">
                       <User className="w-4 h-4 absolute left-3.5 top-3 text-slate-500" />
                       <input
-                        type="text"
-                        required
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        placeholder="e.g. Alex Morgan"
-                        className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
-                      />
+                      type="text"
+                      required
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="e.g. Alex Morgan"
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
+                    
                     </div>
                   </div>
 
@@ -96,16 +96,16 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                       Company Name
                     </label>
                     <input
-                      type="text"
-                      required
-                      value={company}
-                      onChange={(e) => setCompany(e.target.value)}
-                      placeholder="e.g. Aetheria Tech Labs"
-                      className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
-                    />
+                    type="text"
+                    required
+                    value={company}
+                    onChange={(e) => setCompany(e.target.value)}
+                    placeholder="e.g. Aetheria Tech Labs"
+                    className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
+                  
                   </div>
                 </>
-              )}
+              }
 
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1.5">
@@ -119,8 +119,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="alex@company.com"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
-                  />
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
+                  
                 </div>
               </div>
 
@@ -136,69 +136,69 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••••••"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
-                  />
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
+                  
                 </div>
               </div>
 
-              {!isSignUp && (
-                <div className="flex items-center justify-between text-xs">
+              {!isSignUp &&
+              <div className="flex items-center justify-between text-xs">
                   <label className="flex items-center gap-2 cursor-pointer text-slate-400">
                     <input
-                      type="checkbox"
-                      checked={rememberMe}
-                      onChange={(e) => setRememberMe(e.target.checked)}
-                      className="rounded bg-slate-950 border-slate-800 text-blue-600 focus:ring-blue-500"
-                    />
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    className="rounded bg-slate-950 border-slate-800 text-blue-600 focus:ring-blue-500" />
+                  
                     Remember me for 30 days
                   </label>
                   <a href="#" className="text-blue-400 hover:underline">
                     Forgot password?
                   </a>
                 </div>
-              )}
+              }
 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm shadow-lg shadow-blue-600/30 transition-all flex items-center justify-center gap-2 active:scale-98 disabled:opacity-50"
-              >
-                {loading ? (
-                  <span>Authenticating...</span>
-                ) : (
-                  <>
+                className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm shadow-lg shadow-blue-600/30 transition-all flex items-center justify-center gap-2 active:scale-98 disabled:opacity-50">
+                
+                {loading ?
+                <span>Authenticating...</span> :
+
+                <>
                     <span>{isSignUp ? 'Create Free Account' : 'Sign In to Dashboard'}</span>
                     <ArrowRight className="w-4 h-4" />
                   </>
-                )}
+                }
               </button>
             </form>
           </div>
 
           <div className="text-center pt-4 border-t border-slate-800/80 text-xs text-slate-400">
-            {isSignUp ? (
-              <span>
+            {isSignUp ?
+            <span>
                 Already have an account?{' '}
                 <button
-                  type="button"
-                  onClick={() => setIsSignUp(false)}
-                  className="text-blue-400 font-semibold hover:underline"
-                >
+                type="button"
+                onClick={() => setIsSignUp(false)}
+                className="text-blue-400 font-semibold hover:underline">
+                
                   Sign In
                 </button>
-              </span>
-            ) : (
-              <span>
+              </span> :
+
+            <span>
                 Don't have an account yet?{' '}
                 <button
-                  type="button"
-                  onClick={() => setIsSignUp(true)}
-                  className="text-blue-400 font-semibold hover:underline"
-                >
+                type="button"
+                onClick={() => setIsSignUp(true)}
+                className="text-blue-400 font-semibold hover:underline">
+                
                   Create one now
                 </button>
               </span>
-            )}
+            }
           </div>
         </div>
 
@@ -242,6 +242,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({
           </div>
         </div>
       </div>
-    </div>
-  );
+    </div>);
+
 };

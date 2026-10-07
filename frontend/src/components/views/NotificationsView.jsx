@@ -1,17 +1,16 @@
 import React from 'react';
 import { Bell, CheckCircle2, AlertCircle, Sparkles, FileText, ArrowRight } from 'lucide-react';
-import { NotificationItem, TabType } from '../../types';
 
-interface NotificationsViewProps {
-  notifications: NotificationItem[];
-  onMarkAsRead: (id: string) => void;
-  onSelectTab: (tab: TabType) => void;
-}
 
-export const NotificationsView: React.FC<NotificationsViewProps> = ({
+
+
+
+
+
+export const NotificationsView = ({
   notifications,
   onMarkAsRead,
-  onSelectTab,
+  onSelectTab
 }) => {
   return (
     <div className="space-y-6 pb-12 max-w-4xl mx-auto">
@@ -27,27 +26,27 @@ export const NotificationsView: React.FC<NotificationsViewProps> = ({
 
       {/* List */}
       <div className="space-y-3">
-        {notifications.map((n) => (
-          <div
-            key={n.id}
-            onClick={() => {
-              onMarkAsRead(n.id);
-              if (n.linkTab) onSelectTab(n.linkTab);
-            }}
-            className={`p-5 rounded-2xl border transition-all cursor-pointer flex items-start gap-4 ${
-              n.read
-                ? 'bg-white border-slate-200 opacity-80'
-                : 'bg-blue-50/40 border-blue-200 shadow-xs'
-            }`}
-          >
+        {notifications.map((n) =>
+        <div
+          key={n.id}
+          onClick={() => {
+            onMarkAsRead(n.id);
+            if (n.linkTab) onSelectTab(n.linkTab);
+          }}
+          className={`p-5 rounded-2xl border transition-all cursor-pointer flex items-start gap-4 ${
+          n.read ?
+          'bg-white border-slate-200 opacity-80' :
+          'bg-blue-50/40 border-blue-200 shadow-xs'}`
+          }>
+          
             <div className="p-2.5 rounded-xl bg-blue-100 text-blue-600 flex-shrink-0">
-              {n.type === 'invoice' ? (
-                <FileText className="w-5 h-5" />
-              ) : n.type === 'insight' ? (
-                <Sparkles className="w-5 h-5" />
-              ) : (
-                <Bell className="w-5 h-5" />
-              )}
+              {n.type === 'invoice' ?
+            <FileText className="w-5 h-5" /> :
+            n.type === 'insight' ?
+            <Sparkles className="w-5 h-5" /> :
+
+            <Bell className="w-5 h-5" />
+            }
             </div>
 
             <div className="flex-1 min-w-0">
@@ -60,8 +59,8 @@ export const NotificationsView: React.FC<NotificationsViewProps> = ({
 
             <ArrowRight className="w-4 h-4 text-slate-400 self-center" />
           </div>
-        ))}
+        )}
       </div>
-    </div>
-  );
+    </div>);
+
 };

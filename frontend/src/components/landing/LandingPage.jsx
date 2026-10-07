@@ -15,37 +15,36 @@ import {
   Users,
   CreditCard,
   Lock,
-  Globe2,
-} from 'lucide-react';
-import { TabType } from '../../types';
+  Globe2 } from
+'lucide-react';
 
-interface LandingPageProps {
-  onLaunchApp: () => void;
-  onLogin: () => void;
-}
 
-export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp, onLogin }) => {
-  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('yearly');
-  const [openFaq, setOpenFaq] = useState<number | null>(0);
+
+
+
+
+export const LandingPage = ({ onLaunchApp, onLogin }) => {
+  const [billingCycle, setBillingCycle] = useState('yearly');
+  const [openFaq, setOpenFaq] = useState(0);
 
   const faqs = [
-    {
-      q: 'How does the AI Receipt OCR scanner work?',
-      a: 'FinSight AI uses Google Gemini vision models to analyze uploaded receipts, PDFs, and photos in real-time. It automatically extracts vendor names, GST/tax IDs, line items, itemized sub-totals, and total amounts with up to 99.8% precision.',
-    },
-    {
-      q: 'Can I issue multi-currency invoices to global clients?',
-      a: 'Yes! FinSight AI supports USD, EUR, GBP, CAD, AUD, and INR natively with automated tax rate calculations, customizable payment terms (Net 15, Net 30, Net 60), and PDF export.',
-    },
-    {
-      q: 'Is my financial data secure?',
-      a: 'Absolutely. We enforce AES-256 bank-level encryption at rest and in transit. Your AI processing occurs in secure, server-side sandboxed environments with zero client-side credential exposure.',
-    },
-    {
-      q: 'How does the AI Financial Assistant help my cash flow?',
-      a: 'FinSight Copilot connects with your live invoice and expense logs to identify early payment discounts, flag overdue accounts, detect spending anomalies, and answer complex financial questions in plain natural language.',
-    },
-  ];
+  {
+    q: 'How does the AI Receipt OCR scanner work?',
+    a: 'FinSight AI uses Google Gemini vision models to analyze uploaded receipts, PDFs, and photos in real-time. It automatically extracts vendor names, GST/tax IDs, line items, itemized sub-totals, and total amounts with up to 99.8% precision.'
+  },
+  {
+    q: 'Can I issue multi-currency invoices to global clients?',
+    a: 'Yes! FinSight AI supports USD, EUR, GBP, CAD, AUD, and INR natively with automated tax rate calculations, customizable payment terms (Net 15, Net 30, Net 60), and PDF export.'
+  },
+  {
+    q: 'Is my financial data secure?',
+    a: 'Absolutely. We enforce AES-256 bank-level encryption at rest and in transit. Your AI processing occurs in secure, server-side sandboxed environments with zero client-side credential exposure.'
+  },
+  {
+    q: 'How does the AI Financial Assistant help my cash flow?',
+    a: 'FinSight Copilot connects with your live invoice and expense logs to identify early payment discounts, flag overdue accounts, detect spending anomalies, and answer complex financial questions in plain natural language.'
+  }];
+
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 font-sans antialiased overflow-x-hidden selection:bg-blue-500 selection:text-white">
@@ -79,14 +78,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp, onLogin }
           <div className="flex items-center gap-3">
             <button
               onClick={onLogin}
-              className="px-4 py-2 text-sm font-semibold text-slate-300 hover:text-white transition-colors"
-            >
+              className="px-4 py-2 text-sm font-semibold text-slate-300 hover:text-white transition-colors">
+              
               Sign In
             </button>
             <button
               onClick={onLaunchApp}
-              className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold shadow-lg shadow-blue-600/30 transition-all hover:scale-105 active:scale-95 flex items-center gap-2"
-            >
+              className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold shadow-lg shadow-blue-600/30 transition-all hover:scale-105 active:scale-95 flex items-center gap-2">
+              
               <span>Launch Dashboard</span>
               <ArrowRight className="w-4 h-4" />
             </button>
@@ -105,8 +104,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp, onLogin }
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-900/90 border border-slate-700/80 text-xs font-semibold text-blue-400 shadow-xl"
-          >
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-900/90 border border-slate-700/80 text-xs font-semibold text-blue-400 shadow-xl">
+            
             <Sparkles className="w-3.5 h-3.5 text-blue-400" />
             <span>Next-Gen Financial Intelligence Engine v2.4</span>
           </motion.div>
@@ -115,8 +114,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp, onLogin }
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="text-4xl sm:text-6xl md:text-7xl font-extrabold text-white tracking-tight max-w-5xl mx-auto leading-[1.1]"
-          >
+            className="text-4xl sm:text-6xl md:text-7xl font-extrabold text-white tracking-tight max-w-5xl mx-auto leading-[1.1]">
+            
             AI-Powered Smart Invoicing & <br />
             <span className="bg-gradient-to-r from-blue-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent">
               Financial Intelligence
@@ -127,8 +126,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp, onLogin }
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-lg sm:text-xl text-slate-400 max-w-2xl mx-auto font-normal leading-relaxed"
-          >
+            className="text-lg sm:text-xl text-slate-400 max-w-2xl mx-auto font-normal leading-relaxed">
+            
             Automate invoices, scan receipts with vision OCR, forecast cash flows, and ask your personal Gemini AI CFO financial questions in seconds.
           </motion.p>
 
@@ -136,19 +135,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp, onLogin }
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4"
-          >
+            className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+            
             <button
               onClick={onLaunchApp}
-              className="w-full sm:w-auto px-8 py-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-base shadow-xl shadow-blue-600/30 transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-3"
-            >
+              className="w-full sm:w-auto px-8 py-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-base shadow-xl shadow-blue-600/30 transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-3">
+              
               <span>Get Started Free</span>
               <ArrowRight className="w-5 h-5" />
             </button>
             <button
               onClick={onLaunchApp}
-              className="w-full sm:w-auto px-8 py-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 font-semibold text-base transition-all hover:scale-105"
-            >
+              className="w-full sm:w-auto px-8 py-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 font-semibold text-base transition-all hover:scale-105">
+              
               Explore Live Demo
             </button>
           </motion.div>
@@ -171,8 +170,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp, onLogin }
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.4 }}
-            className="pt-10 max-w-5xl mx-auto"
-          >
+            className="pt-10 max-w-5xl mx-auto">
+            
             <div className="relative rounded-2xl p-2 bg-gradient-to-b from-slate-800 to-slate-900 border border-slate-700/60 shadow-2xl overflow-hidden group">
               <div className="bg-slate-950 rounded-xl p-6 text-left space-y-6">
                 {/* Simulated App Top Bar */}
@@ -338,13 +337,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp, onLogin }
               </span>
               <button
                 onClick={() => setBillingCycle(billingCycle === 'monthly' ? 'yearly' : 'monthly')}
-                className="w-14 h-8 rounded-full bg-slate-800 p-1 border border-slate-700 relative transition-colors"
-              >
+                className="w-14 h-8 rounded-full bg-slate-800 p-1 border border-slate-700 relative transition-colors">
+                
                 <div
                   className={`w-6 h-6 rounded-full bg-blue-500 transition-transform ${
-                    billingCycle === 'yearly' ? 'translate-x-6' : 'translate-x-0'
-                  }`}
-                />
+                  billingCycle === 'yearly' ? 'translate-x-6' : 'translate-x-0'}`
+                  } />
+                
               </button>
               <span className={`text-sm font-semibold flex items-center gap-1.5 ${billingCycle === 'yearly' ? 'text-white' : 'text-slate-400'}`}>
                 Yearly Billing
@@ -384,8 +383,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp, onLogin }
               </div>
               <button
                 onClick={onLaunchApp}
-                className="w-full py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-sm transition-colors"
-              >
+                className="w-full py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-sm transition-colors">
+                
                 Start 14-Day Trial
               </button>
             </div>
@@ -424,8 +423,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp, onLogin }
               </div>
               <button
                 onClick={onLaunchApp}
-                className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm shadow-lg shadow-blue-600/30 transition-colors"
-              >
+                className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm shadow-lg shadow-blue-600/30 transition-colors">
+                
                 Get Started Now
               </button>
             </div>
@@ -458,8 +457,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp, onLogin }
               </div>
               <button
                 onClick={onLaunchApp}
-                className="w-full py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-sm transition-colors"
-              >
+                className="w-full py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-sm transition-colors">
+                
                 Contact Sales
               </button>
             </div>
@@ -475,29 +474,29 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp, onLogin }
         </div>
 
         <div className="space-y-4">
-          {faqs.map((faq, idx) => (
-            <div
-              key={idx}
-              className="rounded-2xl border border-slate-800 bg-slate-900/60 overflow-hidden transition-colors"
-            >
+          {faqs.map((faq, idx) =>
+          <div
+            key={idx}
+            className="rounded-2xl border border-slate-800 bg-slate-900/60 overflow-hidden transition-colors">
+            
               <button
-                onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
-                className="w-full p-6 text-left flex items-center justify-between font-bold text-white text-base"
-              >
+              onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
+              className="w-full p-6 text-left flex items-center justify-between font-bold text-white text-base">
+              
                 <span>{faq.q}</span>
                 <ChevronDown
-                  className={`w-5 h-5 text-slate-400 transition-transform ${
-                    openFaq === idx ? 'rotate-180' : ''
-                  }`}
-                />
+                className={`w-5 h-5 text-slate-400 transition-transform ${
+                openFaq === idx ? 'rotate-180' : ''}`
+                } />
+              
               </button>
-              {openFaq === idx && (
-                <div className="px-6 pb-6 text-sm text-slate-400 leading-relaxed border-t border-slate-800/60 pt-4">
+              {openFaq === idx &&
+            <div className="px-6 pb-6 text-sm text-slate-400 leading-relaxed border-t border-slate-800/60 pt-4">
                   {faq.a}
                 </div>
-              )}
+            }
             </div>
-          ))}
+          )}
         </div>
       </section>
 
@@ -518,6 +517,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLaunchApp, onLogin }
           </div>
         </div>
       </footer>
-    </div>
-  );
+    </div>);
+
 };
