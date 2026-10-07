@@ -300,7 +300,13 @@ export function App() {
             />
           )}
 
-          {currentTab === 'analytics' && <AnalyticsView />}
+          {currentTab === 'analytics' && (
+            <AnalyticsView
+              invoices={invoices}
+              expenses={expenses}
+              receipts={receipts}
+            />
+          )}
 
           {currentTab === 'copilot' && (
             <CopilotView invoices={invoices} expenses={expenses} />

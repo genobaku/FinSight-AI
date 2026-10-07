@@ -379,6 +379,7 @@ import {
   Bot,
   ExternalLink,
   Sparkles,
+  AlertCircle,
 } from 'lucide-react';
 
 import {
@@ -406,10 +407,7 @@ import {
   UserProfile,
 } from '../../types';
 
-import {
-  EXPENSE_CATEGORY_DATA,
-  MONTHLY_CASHFLOW_DATA,
-} from '../../data/mockData';
+import { computeRealAnalytics } from '../../lib/analyticsEngine';
 
 interface DashboardViewProps {
   user: UserProfile;
@@ -425,37 +423,26 @@ interface DashboardViewProps {
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
   user,
-  invoices,
-  expenses,
-  receipts,
+  invoices = [],
+  expenses = [],
+  receipts = [],
   aiInsights,
   onSelectTab,
   onOpenNewInvoice,
   onOpenReceiptScan,
   onSelectInvoice,
 }) => {
-  const totalRevenue = invoices
-    .filter((invoice) => invoice.status === 'Paid')
-    .reduce((sum, invoice) => sum + invoice.total, 0);
+  const analytics = computeRealAnalytics(invoices, expenses, receipts);
+  const { totalRevenue, totalExpenses, netProfit, profitMargin, cashFlow, expenseBreakdown } = analytics;
 
   const outstandingAmount = invoices
     .filter(
       (invoice) =>
         invoice.status === 'Pending' || invoice.status === 'Overdue'
     )
-    .reduce((sum, invoice) => sum + invoice.total, 0);
+    .reduce((sum, invoice) => sum + (invoice.total || 0), 0);
 
-  const totalExpenses = expenses.reduce(
-    (sum, expense) => sum + expense.amount,
-    0
-  );
-
-  const netProfit = totalRevenue - totalExpenses;
-
-  const margin =
-    totalRevenue > 0
-      ? Math.round((netProfit / totalRevenue) * 100)
-      : 0;
+  const margin = profitMargin.toFixed(1);
 
   const overdueInvoices = invoices.filter(
     (invoice) => invoice.status === 'Overdue'
@@ -701,104 +688,100 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
 
           <div className="h-72 p-4">
-
-            <ResponsiveContainer width="100%" height="100%">
-
-              <AreaChart
-                data={MONTHLY_CASHFLOW_DATA}
-                margin={{
-                  top: 10,
-                  right: 10,
-                  left: -20,
-                  bottom: 0,
-                }}
-              >
-
-                <defs>
-
-                  <linearGradient
-                    id="revenueFill"
-                    x1="0"
-                    y1="0"
-                    x2="0"
-                    y2="1"
-                  >
-                    <stop
-                      offset="0%"
-                      stopColor="#2563EB"
-                      stopOpacity={0.25}
-                    />
-
-                    <stop
-                      offset="100%"
-                      stopColor="#2563EB"
-                      stopOpacity={0}
-                    />
-                  </linearGradient>
-
-                </defs>
-
-
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  vertical={false}
-                  stroke="#E2E8F0"
-                />
-
-
-                <XAxis
-                  dataKey="month"
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{
-                    fontSize: 11,
-                    fill: '#64748B',
+            {cashFlow.length === 0 ? (
+              <div className="h-full flex flex-col items-center justify-center text-center p-6 bg-slate-50/50 rounded-lg border border-dashed border-slate-200">
+                <AlertCircle className="w-8 h-8 text-slate-400 mb-2" />
+                <p className="text-sm font-semibold text-slate-700">Not enough data to generate cash-flow analytics.</p>
+                <p className="text-xs text-slate-500 mt-1 max-w-xs">
+                  Create invoices or record expenses to automatically populate cash flow trends over time.
+                </p>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart
+                  data={cashFlow}
+                  margin={{
+                    top: 10,
+                    right: 10,
+                    left: -20,
+                    bottom: 0,
                   }}
-                />
+                >
+                  <defs>
+                    <linearGradient
+                      id="revenueFill"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop
+                        offset="0%"
+                        stopColor="#2563EB"
+                        stopOpacity={0.25}
+                      />
+                      <stop
+                        offset="100%"
+                        stopColor="#2563EB"
+                        stopOpacity={0}
+                      />
+                    </linearGradient>
+                  </defs>
 
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    vertical={false}
+                    stroke="#E2E8F0"
+                  />
 
-                <YAxis
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{
-                    fontSize: 11,
-                    fill: '#64748B',
-                  }}
-                />
+                  <XAxis
+                    dataKey="month"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{
+                      fontSize: 11,
+                      fill: '#64748B',
+                    }}
+                  />
 
+                  <YAxis
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{
+                      fontSize: 11,
+                      fill: '#64748B',
+                    }}
+                  />
 
-                <Tooltip
-                  contentStyle={{
-                    borderRadius: '8px',
-                    border: '1px solid #E2E8F0',
-                    fontSize: '12px',
-                  }}
-                />
+                  <Tooltip
+                    contentStyle={{
+                      borderRadius: '8px',
+                      border: '1px solid #E2E8F0',
+                      fontSize: '12px',
+                    }}
+                    formatter={(val: any) => [`$${Number(val).toLocaleString()}`, '']}
+                  />
 
+                  <Area
+                    type="monotone"
+                    dataKey="revenue"
+                    name="Revenue"
+                    stroke="#2563EB"
+                    strokeWidth={2}
+                    fill="url(#revenueFill)"
+                  />
 
-                <Area
-                  type="monotone"
-                  dataKey="revenue"
-                  name="Revenue"
-                  stroke="#2563EB"
-                  strokeWidth={2}
-                  fill="url(#revenueFill)"
-                />
-
-
-                <Area
-                  type="monotone"
-                  dataKey="expenses"
-                  name="Expenses"
-                  stroke="#94A3B8"
-                  strokeWidth={2}
-                  fill="transparent"
-                />
-
-              </AreaChart>
-
-            </ResponsiveContainer>
-
+                  <Area
+                    type="monotone"
+                    dataKey="expenses"
+                    name="Expenses"
+                    stroke="#94A3B8"
+                    strokeWidth={2}
+                    fill="transparent"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
           </div>
 
         </div>
@@ -823,77 +806,72 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
           <div className="p-4">
 
-            <div className="h-48">
+            {expenseBreakdown.length === 0 ? (
+              <div className="h-64 flex flex-col items-center justify-center text-center p-6 bg-slate-50/50 rounded-lg border border-dashed border-slate-200">
+                <AlertCircle className="w-8 h-8 text-slate-400 mb-2" />
+                <p className="text-sm font-semibold text-slate-700">No expense data available.</p>
+                <p className="text-xs text-slate-500 mt-1 max-w-xs">
+                  Scan receipts or log vendor expenses to generate category breakdowns.
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="h-48">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={expenseBreakdown}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={50}
+                        outerRadius={72}
+                        paddingAngle={3}
+                        dataKey="value"
+                      >
+                        {expenseBreakdown.map(
+                          (entry, index) => (
+                            <Cell
+                              key={`cell-${index}`}
+                              fill={entry.color}
+                            />
+                          )
+                        )}
+                      </Pie>
 
-              <ResponsiveContainer width="100%" height="100%">
+                      <Tooltip formatter={(val: any) => [`$${Number(val).toLocaleString()}`, 'Amount']} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
 
-                <PieChart>
+                <div className="space-y-2 mt-2">
+                  {expenseBreakdown
+                    .slice(0, 4)
+                    .map((item, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between text-xs"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span
+                            className="w-2.5 h-2.5 rounded-full"
+                            style={{
+                              backgroundColor: item.color,
+                            }}
+                          />
 
-                  <Pie
-                    data={EXPENSE_CATEGORY_DATA}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={50}
-                    outerRadius={72}
-                    paddingAngle={3}
-                    dataKey="value"
-                  >
+                          <span className="text-slate-600">
+                            {item.name}
+                          </span>
+                        </div>
 
-                    {EXPENSE_CATEGORY_DATA.map(
-                      (entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={entry.color}
-                        />
-                      )
-                    )}
-
-                  </Pie>
-
-                  <Tooltip />
-
-                </PieChart>
-
-              </ResponsiveContainer>
-
-            </div>
-
-
-            <div className="space-y-2 mt-2">
-
-              {EXPENSE_CATEGORY_DATA
-                .slice(0, 4)
-                .map((item, index) => (
-
-                  <div
-                    key={index}
-                    className="flex items-center justify-between text-xs"
-                  >
-
-                    <div className="flex items-center gap-2">
-
-                      <span
-                        className="w-2.5 h-2.5 rounded-full"
-                        style={{
-                          backgroundColor: item.color,
-                        }}
-                      />
-
-                      <span className="text-slate-600">
-                        {item.name}
-                      </span>
-
-                    </div>
-
-                    <span className="font-semibold text-slate-900">
-                      ${item.value.toLocaleString()}
-                    </span>
-
-                  </div>
-
-                ))}
-
-            </div>
+                        <span className="font-semibold text-slate-900">
+                          ${item.value.toLocaleString()}
+                        </span>
+                      </div>
+                    ))}
+                </div>
+              </>
+            )}
 
           </div>
 

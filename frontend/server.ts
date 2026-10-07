@@ -417,7 +417,79 @@ CRITICAL MANDATES:
   }
 });
 
-// 4. Invoices REST endpoints
+// 4. Real Analytics Aggregation API Endpoint GET /api/analytics
+app.get('/api/analytics', (req, res) => {
+  try {
+    const paidInvoices = memoryInvoices.filter((inv) => inv.status === 'Paid');
+    const totalRevenue = paidInvoices.reduce((sum, inv) => sum + (Number(inv.total) || 0), 0);
+
+    const expenseSum = memoryExpenses.reduce((sum, exp) => sum + (Number(exp.amount) || 0), 0);
+    const totalExpenses = expenseSum;
+    const netProfit = totalRevenue - totalExpenses;
+
+    // Monthly Cash Flow Buckets
+    const monthlyMap = new Map<string, { revenue: number; expenses: number }>();
+    paidInvoices.forEach((inv) => {
+      const ym = (inv.issueDate || inv.createdAt || '').substring(0, 7);
+      if (/^\d{4}-\d{2}$/.test(ym)) {
+        const cur = monthlyMap.get(ym) || { revenue: 0, expenses: 0 };
+        monthlyMap.set(ym, { ...cur, revenue: cur.revenue + (Number(inv.total) || 0) });
+      }
+    });
+
+    memoryExpenses.forEach((exp) => {
+      const ym = (exp.date || '').substring(0, 7);
+      if (/^\d{4}-\d{2}$/.test(ym)) {
+        const cur = monthlyMap.get(ym) || { revenue: 0, expenses: 0 };
+        monthlyMap.set(ym, { ...cur, expenses: cur.expenses + (Number(exp.amount) || 0) });
+      }
+    });
+
+    const cashFlow = Array.from(monthlyMap.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([ym, val]) => {
+        const [y, m] = ym.split('-');
+        const dateObj = new Date(parseInt(y, 10), parseInt(m, 10) - 1, 1);
+        return {
+          month: `${dateObj.toLocaleString('en-US', { month: 'short' })} ${y.substring(2)}`,
+          period: ym,
+          revenue: val.revenue,
+          expenses: val.expenses,
+          netCashFlow: val.revenue - val.expenses,
+        };
+      });
+
+    // Category Expense Breakdown
+    const categoryMap = new Map<string, number>();
+    memoryExpenses.forEach((exp) => {
+      const cat = exp.category ? exp.category.trim() : 'Uncategorized';
+      const cur = categoryMap.get(cat) || 0;
+      categoryMap.set(cat, cur + (Number(exp.amount) || 0));
+    });
+
+    const expenseBreakdown = Array.from(categoryMap.entries()).map(([category, amount]) => ({
+      category,
+      amount,
+    }));
+
+    return res.json({
+      success: true,
+      summary: {
+        totalRevenue,
+        totalExpenses,
+        netProfit,
+        profitMargin: totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0,
+      },
+      cashFlow,
+      expenseBreakdown,
+      hasData: memoryInvoices.length > 0 || memoryExpenses.length > 0,
+    });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 5. Invoices REST endpoints
 app.get('/api/invoices', (req, res) => {
   res.json({ success: true, invoices: memoryInvoices });
 });
