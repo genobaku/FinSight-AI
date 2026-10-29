@@ -537,6 +537,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <StatCard
           title="Paid Revenue"
           value={`$${totalRevenue.toLocaleString()}`}
+          subtitle=""
           trend={{ value: '18% growth', isPositive: true }}
           icon={DollarSign}
           iconBgColor="bg-emerald-100"
@@ -546,6 +547,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <StatCard
           title="Business Expenses"
           value={`$${totalExpenses.toLocaleString()}`}
+          subtitle=""
           trend={{ value: 'Cost Optimized', isPositive: true }}
           icon={CreditCard}
           iconBgColor="bg-blue-100"
@@ -556,6 +558,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           title="Outstanding"
           value={`$${outstandingAmount.toLocaleString()}`}
           subtitle={`${overdueInvoices.length} overdue invoices`}
+          trend={null}
           icon={Clock}
           iconBgColor="bg-amber-100"
           iconTextColor="text-amber-700"
@@ -564,6 +567,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <StatCard
           title="Net Margin"
           value={`${margin}%`}
+          subtitle=""
           trend={{ value: 'Healthy', isPositive: true }}
           icon={TrendingUp}
           iconBgColor="bg-indigo-100"

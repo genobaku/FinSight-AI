@@ -1,4 +1,15 @@
 import os
+import sys
+import base64
+
+# Ensure both project root and backend dir are in sys.path
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(BASE_DIR)
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+if BASE_DIR not in sys.path:
+    sys.path.insert(0, BASE_DIR)
+
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from backend.document_processing.processor import DocumentProcessor
@@ -29,30 +40,61 @@ def classify_document():
             "error": "Production ML Model is unavailable."
         }), 500
 
-    if "file" not in request.files:
+    filename = ""
+    file_bytes = b""
+
+    # 1. Handle multipart/form-data upload
+    if "file" in request.files:
+        file = request.files["file"]
+        if file.filename == "":
+            return jsonify({
+                "success": False,
+                "error": "Filename cannot be empty."
+            }), 400
+        filename = file.filename
+        file_bytes = file.read()
+
+    # 2. Handle JSON payload with imageBase64
+    elif request.is_json:
+        data = request.get_json(silent=True) or {}
+        image_base64 = data.get("imageBase64")
+        filename = data.get("filename", "document.jpg")
+        if not image_base64:
+            return jsonify({
+                "success": False,
+                "error": "No file or imageBase64 payload found in request."
+            }), 400
+        try:
+            # Strip data URI header if present
+            if "," in image_base64:
+                image_base64 = image_base64.split(",", 1)[1]
+            file_bytes = base64.b64decode(image_base64)
+        except Exception as b_err:
+            return jsonify({
+                "success": False,
+                "error": f"Invalid base64 payload: {str(b_err)}"
+            }), 400
+
+    else:
         return jsonify({
             "success": False,
-            "error": "No file payload found in upload request."
+            "error": "Request must be multipart/form-data with 'file' or JSON with 'imageBase64'."
         }), 400
 
-    file = request.files["file"]
-    if file.filename == "":
+    if not file_bytes:
         return jsonify({
             "success": False,
-            "error": "Filename cannot be empty."
+            "error": "Uploaded document payload is empty."
         }), 400
-
-    filename = file.filename
-    file_bytes = file.read()
 
     result = doc_processor.process_document(filename, file_bytes)
     
-    if not result["success"]:
+    if not result.get("success"):
         return jsonify(result), 400
         
     return jsonify(result), 200
 
 if __name__ == "__main__":
-    port = int(os.getenv("PORT", 5000))
+    port = int(os.getenv("PORT", os.getenv("ML_SERVICE_PORT", 5000)))
     print(f"Starting Finsight AI Document API backend on http://localhost:{port}")
     app.run(host="0.0.0.0", port=port, debug=False)

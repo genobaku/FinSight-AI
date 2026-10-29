@@ -1,5 +1,6 @@
 import express from 'express';
 import path from 'path';
+import fs from 'fs';
 import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI, Type } from '@google/genai';
 import dotenv from 'dotenv';
@@ -11,6 +12,21 @@ const PORT = 3000;
 
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
+// Serve static public assets (including favicon)
+const publicDir = path.join(process.cwd(), 'public');
+if (fs.existsSync(publicDir)) {
+  app.use(express.static(publicDir));
+}
+
+// Favicon handler
+app.get(['/favicon.ico', '/favicon.svg'], (req, res) => {
+  const icoPath = path.join(publicDir, req.path.endsWith('.svg') ? 'favicon.svg' : 'favicon.ico');
+  if (fs.existsSync(icoPath)) {
+    return res.sendFile(icoPath);
+  }
+  return res.status(204).end();
+});
 
 // Helper to instantiate Gemini client safely on server
 function getGeminiClient() {
@@ -158,7 +174,7 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Proxy route for Python ML Classifier Service (Flask on port 5000)
+// Proxy route for Python ML Classifier & Document Extraction Service (Flask on port 5000)
 app.post('/api/classify-document', async (req, res) => {
   try {
     const { imageBase64, filename = 'document.jpg' } = req.body;
@@ -166,27 +182,55 @@ app.post('/api/classify-document', async (req, res) => {
       return res.status(400).json({ success: false, error: 'Missing imageBase64 payload.' });
     }
 
+    // Sanitize user-provided filename to prevent path traversal or shell exploits
+    const rawName = path.basename(String(filename || 'document.jpg'));
+    const safeFilename = rawName.replace(/[^a-zA-Z0-9._-]/g, '_');
+
     // Convert Base64 data URI to Binary Buffer
     const base64Data = imageBase64.replace(/^data:[^;]+;base64,/, '');
     const buffer = Buffer.from(base64Data, 'base64');
 
+    // Size limit verification server-side (10 MB limit)
+    if (buffer.length > 10 * 1024 * 1024) {
+      return res.status(400).json({
+        success: false,
+        error: 'File size exceeds maximum allowed limit of 10 MB.'
+      });
+    }
+
     const formData = new FormData();
     const blob = new Blob([buffer], { type: 'application/octet-stream' });
-    formData.append('file', blob, filename);
+    formData.append('file', blob, safeFilename);
 
     const mlFlaskPort = process.env.ML_SERVICE_PORT || '5000';
-    const flaskRes = await fetch(`http://127.0.0.1:${mlFlaskPort}/api/classify-document`, {
-      method: 'POST',
-      body: formData,
-    });
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 60000); // 60s timeout for OCR
 
-    const mlData = await flaskRes.json();
-    return res.status(flaskRes.status).json(mlData);
+    try {
+      const flaskRes = await fetch(`http://127.0.0.1:${mlFlaskPort}/api/classify-document`, {
+        method: 'POST',
+        body: formData,
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeout);
+      const mlData = await flaskRes.json();
+      return res.status(flaskRes.status).json(mlData);
+    } catch (fetchErr: any) {
+      clearTimeout(timeout);
+      if (fetchErr.name === 'AbortError') {
+        return res.status(504).json({
+          success: false,
+          error: 'Document processing timed out after 60 seconds.',
+        });
+      }
+      throw fetchErr;
+    }
   } catch (err: any) {
     console.error('Python ML Classifier proxy error:', err);
-    return res.status(500).json({
+    return res.status(502).json({
       success: false,
-      error: 'Python ML Classifier service unreachable on port 5000.',
+      error: 'Python ML Classifier and OCR service is unreachable on port 5000. Please start the backend service.',
       details: err.message,
     });
   }
@@ -258,10 +302,10 @@ app.post('/api/cloudinary/upload', async (req, res) => {
   }
 });
 
-// 3. Gemini Vision OCR Extraction Route POST /api/invoices/extract
+// 3. Gemini Vision OCR Extraction Route POST /api/invoices/extract (with Python fallback)
 app.post('/api/invoices/extract', async (req, res) => {
   try {
-    const { imageBase64, mimeType = 'image/jpeg', cloudinaryUrl } = req.body;
+    const { imageBase64, mimeType = 'image/jpeg', filename = 'invoice.jpg', cloudinaryUrl } = req.body;
     const ai = getGeminiClient();
 
     if (!imageBase64) {
@@ -272,30 +316,50 @@ app.post('/api/invoices/extract', async (req, res) => {
       });
     }
 
-    const cleanBase64 = imageBase64.replace(/^data:image\/\w+;base64,/, '');
-
+    // If Gemini is not configured, fall back to our Python ML & OCR pipeline!
     if (!ai) {
-      return res.status(200).json({
+      const mlFlaskPort = process.env.ML_SERVICE_PORT || '5000';
+      try {
+        const base64Data = imageBase64.replace(/^data:[^;]+;base64,/, '');
+        const buffer = Buffer.from(base64Data, 'base64');
+        const formData = new FormData();
+        const blob = new Blob([buffer], { type: 'application/octet-stream' });
+        const safeName = path.basename(filename).replace(/[^a-zA-Z0-9._-]/g, '_');
+        formData.append('file', blob, safeName);
+
+        const flaskRes = await fetch(`http://127.0.0.1:${mlFlaskPort}/api/classify-document`, {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (flaskRes.ok) {
+          const mlData = await flaskRes.json();
+          if (mlData.success) {
+            return res.json({
+              success: true,
+              cloudinary_url: cloudinaryUrl || null,
+              ocr_text: mlData.full_extracted_text || mlData.extracted_text || '',
+              category: mlData.category,
+              confidence: mlData.confidence,
+              invoice: mlData.invoice || {},
+            });
+          }
+        }
+      } catch (proxyErr) {
+        console.warn('Fallback to Python OCR service notice:', proxyErr);
+      }
+
+      return res.status(503).json({
         success: false,
-        message: 'GEMINI_API_KEY environment variable is not configured.',
+        message: 'OCR extraction service is unavailable.',
+        reason: 'Neither GEMINI_API_KEY nor local Python OCR service is reachable.',
         cloudinary_url: cloudinaryUrl || null,
         ocr_text: '',
-        invoice: {
-          vendor: null,
-          invoice_number: null,
-          invoice_date: null,
-          currency: 'USD',
-          subtotal: 0,
-          tax: 0,
-          tax_rate: null,
-          total: 0,
-          payment_method: null,
-          category: null,
-          confidence: 0,
-          items: [],
-        },
+        invoice: null,
       });
     }
+
+    const cleanBase64 = imageBase64.replace(/^data:image\/\w+;base64,/, '').replace(/^data:application\/pdf;base64,/, '');
 
     const promptText = `Perform OCR and information extraction on this receipt or invoice image with maximum precision.
 Extract all readable text and structured invoice fields.
@@ -303,9 +367,9 @@ Extract all readable text and structured invoice fields.
 CRITICAL MANDATES:
 1. Return ONLY strict JSON matching the schema below. No markdown formatting (\`\`\`json), no explanations.
 2. Extract REAL, EXACT text from the receipt image. NEVER fabricate or invent generic vendor names, fake invoice numbers, or fake totals.
-3. If a field cannot be identified or is missing on the image, set its value to null (or 0 for numeric amounts, or empty array for items).
+3. If a field cannot be identified or is missing on the image, set its value to null (do NOT invent 0 or generic strings).
 4. Identify the currency code or symbol (e.g., CHF, USD, EUR, GBP, CAD, JPY).
-5. Calculate a confidence percentage score (0 to 100) based on image legibility and extracted field completeness.`;
+5. If you cannot calculate a truthful confidence score, set confidence to null.`;
 
     const response = await ai.models.generateContent({
       model: 'gemini-3.6-flash',
@@ -337,7 +401,7 @@ CRITICAL MANDATES:
             total: { type: Type.NUMBER, nullable: true },
             payment_method: { type: Type.STRING, nullable: true },
             category: { type: Type.STRING, nullable: true },
-            confidence: { type: Type.NUMBER },
+            confidence: { type: Type.NUMBER, nullable: true },
             items: {
               type: Type.ARRAY,
               items: {
@@ -367,20 +431,20 @@ CRITICAL MANDATES:
       vendor: parsed.vendor || null,
       invoice_number: parsed.invoice_number || null,
       invoice_date: parsed.invoice_date || null,
-      currency: parsed.currency || 'USD',
-      subtotal: Number(parsed.subtotal) || 0,
-      tax: Number(parsed.tax) || 0,
+      currency: parsed.currency || null,
+      subtotal: parsed.subtotal != null ? Number(parsed.subtotal) : null,
+      tax: parsed.tax != null ? Number(parsed.tax) : null,
       tax_rate: parsed.tax_rate || null,
-      total: Number(parsed.total) || 0,
+      total: parsed.total != null ? Number(parsed.total) : null,
       payment_method: parsed.payment_method || null,
       category: parsed.category || null,
-      confidence: Number(parsed.confidence) || 98,
+      confidence: parsed.confidence != null ? Number(parsed.confidence) : null,
       items: Array.isArray(parsed.items)
         ? parsed.items.map((it: any) => ({
             name: it.name || it.description || 'Item',
-            quantity: Number(it.quantity) || 1,
-            unit_price: Number(it.unit_price || it.price) || 0,
-            total: Number(it.total) || 0,
+            quantity: it.quantity != null ? Number(it.quantity) : 1,
+            unit_price: it.unit_price != null ? Number(it.unit_price) : 0,
+            total: it.total != null ? Number(it.total) : 0,
           }))
         : [],
     };
@@ -393,26 +457,13 @@ CRITICAL MANDATES:
     });
   } catch (err: any) {
     console.error('Gemini extraction error:', err);
-    return res.status(200).json({
+    return res.status(500).json({
       success: false,
       message: 'OCR extraction failed',
       reason: err.message,
       cloudinary_url: req.body?.cloudinaryUrl || null,
       ocr_text: '',
-      invoice: {
-        vendor: null,
-        invoice_number: null,
-        invoice_date: null,
-        currency: 'USD',
-        subtotal: 0,
-        tax: 0,
-        tax_rate: null,
-        total: 0,
-        payment_method: null,
-        category: null,
-        confidence: 0,
-        items: [],
-      },
+      invoice: null,
     });
   }
 });
@@ -675,7 +726,9 @@ async function startServer() {
   }
 
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`FinSight AI Production Server running on http://0.0.0.0:${PORT}`);
+    console.log(`\n  🚀 FinSight AI Server ready:`);
+    console.log(`  ➜  Local:   http://localhost:${PORT}/`);
+    console.log(`  ➜  Network: http://127.0.0.1:${PORT}/\n`);
   });
 }
 

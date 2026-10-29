@@ -1,0 +1,89 @@
+# 📖 FinSight AI — Textbook Guide to Running the Project
+
+---
+
+### 🟢 Status Update
+The project is **currently running live**!
+- **Frontend App**: `http://localhost:3000`
+- **Python ML Service**: `http://localhost:5000`
+
+The port collision error (`EADDRINUSE: port 3000 in use`) occurred because an older instance was running in the background. It has been cleared and restarted.
+
+---
+
+# 📚 Step-by-Step Textbook Guide
+
+Follow these steps to run FinSight AI locally on any machine.
+
+---
+
+### **Step 1: Prerequisites**
+Ensure you have the following installed on your system:
+1. **Node.js** (v18 or higher)
+2. **Python** (v3.9 or higher)
+3. **Git**
+
+---
+
+### **Step 2: Terminal 1 — Start the Python ML Backend Service**
+
+Open your first terminal window in the project root directory:
+
+```bash
+# Navigate to the project root
+cd "d:\Programming\2026\Project\Finsight ai"
+
+# Install Python dependencies (if not already installed)
+pip install -r backend/requirements.txt
+
+# Start the Flask Document Classification & OCR ML Service
+python -m backend.app
+```
+
+*Expected Output*:
+`Starting Finsight AI Document API backend on http://localhost:5000`
+
+---
+
+### **Step 3: Terminal 2 — Start the React Frontend Application**
+
+Open a second terminal window in the project root directory:
+
+```bash
+# Option A: Run directly from the project root (Recommended)
+npm run dev
+
+# OR Option B: Navigate into frontend/ and run
+cd frontend
+npm run dev
+```
+
+*Expected Output*:
+`FinSight AI Production Server running on http://0.0.0.0:3000`
+
+---
+
+### **Step 4: Open in Web Browser**
+
+Open your web browser (Chrome, Edge, Firefox) and navigate to:
+```text
+http://localhost:3000
+```
+
+---
+
+### 💡 Troubleshooting Common Port Errors
+
+If you see `Error: listen EADDRINUSE: address already in use 0.0.0.0:3000`:
+
+#### **On Windows (PowerShell)**:
+```powershell
+Get-Process -Id (Get-NetTCPConnection -LocalPort 3000).OwningProcess | Stop-Process -Force
+```
+
+#### **On Linux / macOS**:
+```bash
+npx kill-port 3000
+```
+
+Then re-run `npm run dev`.

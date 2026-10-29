@@ -1,0 +1,146 @@
+FINSIGHT AI – ML MODEL TRAINING PROGRESS
+
+Date: 1 October 2026
+
+Today I started the Machine Learning part of Finsight AI.
+
+1. Objective
+I wanted to create a basic ML model that can automatically categorize transaction descriptions into different categories.
+
+Example:
+"Swiggy dinner" → Food
+"Uber ride" → Transport
+"Amazon headphones" → Shopping
+
+2. Dataset
+For the initial prototype, I created a labeled dataset containing 175 transaction descriptions.
+
+Categories:
+- Food
+- Transport
+- Shopping
+- Bills
+- Entertainment
+- Healthcare
+- Education
+
+The dataset is currently a prototype/custom dataset and is not a real-world benchmark dataset.
+
+3. Data Preparation
+I divided the dataset into:
+- 80% training data
+- 20% testing data
+
+The model learns from the training data and is evaluated using unseen testing data.
+
+4. ML Technique
+I used TF-IDF (Term Frequency–Inverse Document Frequency) to convert transaction text into numerical features that the ML algorithm can understand.
+
+Example:
+
+"Swiggy food order"
+
+        ↓
+
+      TF-IDF
+
+        ↓
+
+Numerical features
+
+5. Model
+I used Logistic Regression as the first baseline classification model.
+
+Pipeline:
+
+Transaction Text
+        ↓
+TF-IDF
+        ↓
+Logistic Regression
+        ↓
+Predicted Category
+
+6. Training
+The model was trained using the 80% training dataset.
+
+After training, the model was tested using the remaining 20% unseen data.
+
+7. Evaluation Results
+
+Accuracy: 77.14%
+Weighted Precision: 81.98%
+Weighted Recall: 77.14%
+Weighted F1-Score: 76.43%
+
+These are actual results obtained from the current prototype experiment.
+
+8. Prediction Testing
+
+Example 1:
+Input:
+"Starbucks double espresso coffee"
+
+Prediction:
+Food
+
+Example 2:
+Input:
+"Uber ride to downtown airport"
+
+Prediction:
+Transport
+
+9. Model Saving
+The trained model was saved so that it can be reused later without training it again.
+
+Saved model:
+transaction_classifier.joblib
+
+10. Current Status
+
+The first ML baseline for Finsight AI is working.
+
+Current pipeline:
+
+Dataset
+↓
+Data Preparation
+↓
+Train/Test Split
+↓
+TF-IDF
+↓
+Logistic Regression
+↓
+Training
+↓
+Evaluation
+↓
+Saved Model
+↓
+New Transaction
+↓
+Prediction
+
+11. Next Steps
+
+- Find a larger and more reliable public dataset.
+- Compare the baseline with other ML approaches.
+- Improve the dataset quality.
+- Test the model on unseen real-world examples.
+- Experiment with document classification.
+- Explore OCR/document extraction.
+- Eventually integrate the ML models into the Finsight AI pipeline.
+
+
+Important distinction
+Your current model answers:
+"What category does this text belong to?"
+
+It does not yet answer:
+"Read this PDF/image and extract all the information."
+
+What have you actually implemented?
+
+"We trained and compared ML classifiers, selected a baseline, saved the model, then integrated it into a document-processing pipeline. The user can upload a PDF or image, the system extracts text using OCR, passes that text through the trained ML pipeline, and returns a predicted category through an API and frontend.

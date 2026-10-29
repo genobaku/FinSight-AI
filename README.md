@@ -1,11 +1,11 @@
-# 💳 FinSight AI - 
+# FinSight AI - 
 
 
 > **Team Hydra** | Project Portfolio & Architecture Documentation
 
 ---
 
-## 👥 Team Hydra & Project Attribution
+## Team Hydra & Project Attribution
 
 | Student Name | Roll No. | Sec | Class Roll | Primary Role & Contributions |
 | :--- | :--- | :---: | :---: | :--- |
@@ -17,7 +17,7 @@
 
 ---
 
-## 📌 Executive Summary
+## Executive Summary
 
 **FinSight AI** is a unified document understanding and financial intelligence platform designed to convert unstructured financial receipts, invoices, and transaction documents (PDFs, PNGs, JPGs) into structured, actionable enterprise data. 
 
@@ -25,7 +25,7 @@ Rather than relying on static, generic SaaS invoicing templates, FinSight AI lev
 
 ---
 
-## 🚀 Key Features & Capabilities
+## Key Features & Capabilities
 
 1. **OCR Document Classification & Machine Learning Pipeline**:
    - Accepts receipt and invoice uploads (`.pdf`, `.png`, `.jpg`).
@@ -47,7 +47,7 @@ Rather than relying on static, generic SaaS invoicing templates, FinSight AI lev
 
 ---
 
-## 🏗️ Repository Directory Structure
+## Repository Directory Structure
 
 ```
 Finsight ai/
@@ -98,7 +98,7 @@ Finsight ai/
 
 ---
 
-## 🧪 Machine Learning Benchmark Results
+## Machine Learning Benchmark Results
 
 Evaluated on **175 transaction records** across 7 categories using an **80/20 stratified train/test split**:
 
@@ -110,7 +110,7 @@ Evaluated on **175 transaction records** across 7 categories using an **80/20 st
 
 ---
 
-## ⚡ How to Run Locally
+## How to Run Locally
 
 ### 1. Install Backend Dependencies
 ```bash
@@ -139,7 +139,7 @@ npm run build
 
 ---
 
-## 📜 Complete Summary of Session Changes
+## Complete Summary of Session Changes
 
 1. **Theme System Overhaul**:
    - Created a centralized CSS design token architecture (`index.css`) for both Light mode and Dark mode.
