@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BarChart3, Download, Calendar, TrendingUp, ReceiptText } from 'lucide-react';
 import {
@@ -17,7 +16,6 @@ export const AnalyticsView: React.FC = () => {
     (sum, item) => sum + Number(item.revenue || 0),
     0
   );
-
 
   const totalExpenses = MONTHLY_CASHFLOW_DATA.reduce(
     (sum, item) => sum + Number(item.expenses || 0),
@@ -41,7 +39,7 @@ export const AnalyticsView: React.FC = () => {
   return (
     <div className="space-y-6 pb-12">
       {/* Page header */}
-      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 text-slate-500 mb-2">
             <BarChart3 className="w-4 h-4" />
@@ -54,7 +52,7 @@ export const AnalyticsView: React.FC = () => {
             Review revenue, spending and monthly cash flow in one place.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
             className="h-10 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-sm font-medium flex items-center gap-2 transition-colors"
@@ -65,15 +63,16 @@ export const AnalyticsView: React.FC = () => {
 
           <button
             type="button"
-            className="w-[145px] h-10 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold shadow-sm transition-all flex items-center justify-center gap-2"
+            className="h-10 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold shadow-sm transition-all flex items-center justify-center gap-2"
           >
             <Download className="w-4 h-4" />
             <span>Export PDF</span>
           </button>
         </div>
       </div>
-       {/* Summary cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+
+      {/* Summary cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white border border-slate-200 rounded-xl p-5">
           <p className="text-xs font-medium text-slate-500">Revenue</p>
           <p className="text-2xl font-bold text-slate-900 mt-2">
@@ -89,6 +88,7 @@ export const AnalyticsView: React.FC = () => {
           </p>
           <p className="text-xs text-slate-400 mt-1">Year to date</p>
         </div>
+
         <div className="bg-white border border-slate-200 rounded-xl p-5">
           <div className="flex items-center justify-between">
             <p className="text-xs font-medium text-slate-500">Net income</p>
@@ -109,7 +109,7 @@ export const AnalyticsView: React.FC = () => {
         </div>
       </div>
 
- {/* Cash flow */}
+      {/* Cash flow */}
       <div className="bg-white border border-slate-200 rounded-xl">
         <div className="px-6 py-5 border-b border-slate-100">
           <div className="flex items-start justify-between gap-4">
@@ -123,7 +123,7 @@ export const AnalyticsView: React.FC = () => {
             </div>
           </div>
         </div>
-        <div className="h-80 w-full p-5">
+        <div className="h-80 w-full p-3 sm:p-5">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={MONTHLY_CASHFLOW_DATA}
@@ -140,8 +140,7 @@ export const AnalyticsView: React.FC = () => {
                 tickLine={false}
                 axisLine={false}
                 tick={{ fontSize: 12, fill: '#64748B' }}
-
-/>
+              />
               <YAxis
                 tickLine={false}
                 axisLine={false}
@@ -165,7 +164,7 @@ export const AnalyticsView: React.FC = () => {
                 radius={[4, 4, 0, 0]}
                 maxBarSize={28}
               />
-            <Bar
+              <Bar
                 dataKey="expenses"
                 name="Expenses"
                 fill="#CBD5E1"
@@ -198,7 +197,7 @@ export const AnalyticsView: React.FC = () => {
         </div>
       </div>
 
-  {/* Expense breakdown + financial snapshot */}
+      {/* Expense breakdown + financial snapshot */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white border border-slate-200 rounded-xl">
           <div className="px-6 py-5 border-b border-slate-100">
@@ -230,12 +229,12 @@ export const AnalyticsView: React.FC = () => {
                       {formatCurrency(Number(item.value || 0))}
                     </span>
                   </div>
-              <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                  <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
                     <div
                       className="h-full rounded-full"
                       style={{
                         width: `${Math.min(100, percentage)}%`,
-                      backgroundColor: '#64748B',
+                        backgroundColor: '#64748B',
                       }}
                     />
                   </div>
@@ -248,7 +247,8 @@ export const AnalyticsView: React.FC = () => {
             })}
           </div>
         </div>
-               <div className="bg-slate-50 border border-slate-200 rounded-xl p-6">
+
+        <div className="bg-slate-50 border border-slate-200 rounded-xl p-6">
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
             Financial snapshot
           </p>
@@ -262,7 +262,7 @@ export const AnalyticsView: React.FC = () => {
             money is coming from and where it is being spent.
           </p>
 
-<div className="mt-6 divide-y divide-slate-200 border-y border-slate-200">
+          <div className="mt-6 divide-y divide-slate-200 border-y border-slate-200">
             <div className="flex items-center justify-between py-4">
               <span className="text-sm text-slate-500">Total revenue</span>
               <span className="text-sm font-semibold text-slate-900">
@@ -276,7 +276,8 @@ export const AnalyticsView: React.FC = () => {
                 {formatCurrency(totalExpenses)}
               </span>
             </div>
-           <div className="flex items-center justify-between py-4">
+
+            <div className="flex items-center justify-between py-4">
               <span className="text-sm text-slate-500">Net income</span>
               <span className="text-sm font-semibold text-emerald-700">
                 {formatCurrency(totalNet)}
@@ -294,12 +295,4 @@ export const AnalyticsView: React.FC = () => {
       </div>
     </div>
   );
-};  
-
-
-
-
-
-
-
-
+};

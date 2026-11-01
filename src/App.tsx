@@ -58,6 +58,7 @@ import {
 export function App() {
   const [currentTab, setCurrentTab] = useState<TabType>('dashboard');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Core Datasets
   const [user, setUser] = useState<UserProfile>(INITIAL_USER);
@@ -92,6 +93,12 @@ export function App() {
 
     loadFromSupabase();
   }, []);
+
+  // Close mobile menu when tab changes
+  const handleSelectTab = (tab: TabType) => {
+    setCurrentTab(tab);
+    setIsMobileMenuOpen(false);
+  };
 
   // Unread notifications count
   const unreadNotificationsCount = notifications.filter((n) => !n.read).length;
@@ -209,21 +216,31 @@ export function App() {
 
   return (
     <div className="flex h-screen w-screen bg-slate-50 overflow-hidden font-sans antialiased text-slate-900">
+      {/* Mobile overlay backdrop */}
+      {isMobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
       <Sidebar
         currentTab={currentTab}
-        onSelectTab={setCurrentTab}
+        onSelectTab={handleSelectTab}
         isCollapsed={isSidebarCollapsed}
         onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
         unreadNotificationsCount={unreadNotificationsCount}
         user={user}
+        isMobileOpen={isMobileMenuOpen}
+        onCloseMobile={() => setIsMobileMenuOpen(false)}
       />
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
         <Navbar
           currentTab={currentTab}
-          onSelectTab={setCurrentTab}
+          onSelectTab={handleSelectTab}
           onOpenSearch={() => setIsSearchOpen(true)}
           onOpenNewInvoice={() => {
             setSelectedInvoiceForEdit(undefined);
@@ -232,9 +249,10 @@ export function App() {
           onOpenReceiptScan={() => setCurrentTab('receipts')}
           unreadNotificationsCount={unreadNotificationsCount}
           user={user}
+          onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
         />
 
-        <main className="flex-1 overflow-y-auto px-6 py-6 sm:px-8 bg-slate-50 space-y-6">
+        <main className="flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-6 lg:px-8 bg-slate-50 space-y-6">
           {/* <IntegrationStatusHeader onSelectTab={setCurrentTab} /> */}
 
           {currentTab === 'dashboard' && (
@@ -244,7 +262,7 @@ export function App() {
               expenses={expenses}
               receipts={receipts}
               aiInsights={aiInsights}
-              onSelectTab={setCurrentTab}
+              onSelectTab={handleSelectTab}
               onOpenNewInvoice={() => {
                 setSelectedInvoiceForEdit(undefined);
                 setIsInvoiceModalOpen(true);
@@ -310,7 +328,7 @@ export function App() {
             <NotificationsView
               notifications={notifications}
               onMarkAsRead={handleMarkNotificationRead}
-              onSelectTab={setCurrentTab}
+              onSelectTab={handleSelectTab}
             />
           )}
 
@@ -332,7 +350,7 @@ export function App() {
         customers={customers}
         vendors={vendors}
         expenses={expenses}
-        onSelectTab={setCurrentTab}
+        onSelectTab={handleSelectTab}
         onSelectInvoice={(inv) => setSelectedInvoiceForPreview(inv)}
       />
 

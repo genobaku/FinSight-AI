@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   LayoutDashboard,
   FileText,
@@ -16,7 +16,7 @@ import {
   Zap,
   LogOut,
   Globe,
-  HelpCircle,
+  X,
 } from 'lucide-react';
 import { TabType, UserProfile } from '../../types';
 
@@ -27,6 +27,8 @@ interface SidebarProps {
   onToggleCollapse: () => void;
   unreadNotificationsCount: number;
   user: UserProfile;
+  isMobileOpen: boolean;
+  onCloseMobile: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -36,6 +38,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onToggleCollapse,
   unreadNotificationsCount,
   user,
+  isMobileOpen,
+  onCloseMobile,
 }) => {
   const mainNavItems = [
     { id: 'dashboard' as TabType, label: 'Dashboard', icon: LayoutDashboard },
@@ -58,34 +62,44 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'settings' as TabType, label: 'Settings', icon: Settings },
   ];
 
-  return (
-    <motion.aside
-      animate={{ width: isCollapsed ? 80 : 260 }}
-      transition={{ duration: 0.2, ease: 'easeInOut' }}
-      className="relative flex flex-col h-screen bg-white text-slate-700 border-r border-slate-200/90 z-30 select-none flex-shrink-0"
-    >
+  const handleNavClick = (tab: TabType) => {
+    onSelectTab(tab);
+    onCloseMobile();
+  };
+
+  const sidebarContent = (collapsed: boolean) => (
+    <>
       {/* Logo Header */}
       <div className="flex items-center justify-between h-[72px] px-5 border-b border-slate-200/80">
         <button
-          onClick={() => onSelectTab('landing')}
+          onClick={() => handleNavClick('landing')}
           className="flex items-center gap-2.5 overflow-hidden text-left hover:opacity-90 transition-opacity"
         >
           <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-extrabold flex-shrink-0 shadow-xs">
             <Zap className="w-4 h-4 fill-white" />
           </div>
-          {!isCollapsed && (
+          {!collapsed && (
             <span className="font-extrabold text-lg text-blue-600 tracking-tight">
               FinSight <span className="text-slate-900">AI</span>
             </span>
           )}
         </button>
 
+        {/* Desktop collapse toggle */}
         <button
           onClick={onToggleCollapse}
-          className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
-          title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          className="hidden lg:flex p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
-          {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+          {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+        </button>
+
+        {/* Mobile close button */}
+        <button
+          onClick={onCloseMobile}
+          className="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+        >
+          <X className="w-4 h-4" />
         </button>
       </div>
 
@@ -98,13 +112,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
           return (
             <button
               key={item.id}
-              onClick={() => onSelectTab(item.id)}
+              onClick={() => handleNavClick(item.id)}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all group ${
                 isActive
                   ? 'bg-blue-50 text-blue-600 font-semibold'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
               }`}
-              title={isCollapsed ? item.label : undefined}
+              title={collapsed ? item.label : undefined}
             >
               <Icon
                 className={`w-4 h-4 flex-shrink-0 ${
@@ -112,13 +126,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 }`}
               />
 
-              {!isCollapsed && <span className="flex-1 text-left truncate">{item.label}</span>}
+              {!collapsed && <span className="flex-1 text-left truncate">{item.label}</span>}
             </button>
           );
         })}
 
         {/* Intelligence Section Header */}
-        {!isCollapsed && (
+        {!collapsed && (
           <div className="text-[11px] uppercase tracking-wider text-slate-400 font-bold px-3 pt-5 pb-1.5">
             Financial Intelligence
           </div>
@@ -131,13 +145,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
           return (
             <button
               key={item.id}
-              onClick={() => onSelectTab(item.id)}
+              onClick={() => handleNavClick(item.id)}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all group ${
                 isActive
                   ? 'bg-blue-50 text-blue-600 font-semibold'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
               }`}
-              title={isCollapsed ? item.label : undefined}
+              title={collapsed ? item.label : undefined}
             >
               <Icon
                 className={`w-4 h-4 flex-shrink-0 ${
@@ -145,9 +159,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 }`}
               />
 
-              {!isCollapsed && <span className="flex-1 text-left truncate">{item.label}</span>}
+              {!collapsed && <span className="flex-1 text-left truncate">{item.label}</span>}
 
-              {!isCollapsed && item.badge && (
+              {!collapsed && item.badge && (
                 <span className="px-1.5 py-0.5 text-[10px] font-bold rounded bg-blue-100 text-blue-700 uppercase">
                   {item.badge}
                 </span>
@@ -156,7 +170,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               {item.count && item.count > 0 ? (
                 <span
                   className={`px-2 py-0.5 text-[11px] font-bold rounded-full ${
-                    isCollapsed ? 'absolute top-1 right-1' : ''
+                    collapsed ? 'absolute top-1 right-1' : ''
                   } ${isActive ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white'}`}
                 >
                   {item.count}
@@ -170,11 +184,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* User Profile Footer */}
       <div className="p-4 border-t border-slate-200/80 space-y-3">
         <button
-          onClick={() => onSelectTab('landing')}
+          onClick={() => handleNavClick('landing')}
           className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-colors"
         >
           <Globe className="w-4 h-4 flex-shrink-0 text-slate-400" />
-          {!isCollapsed && <span>Public Landing Page</span>}
+          {!collapsed && <span>Public Landing Page</span>}
         </button>
 
         <div className="pt-2 border-t border-slate-100 flex items-center gap-3">
@@ -182,16 +196,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
             {user.name.split(' ').map((n) => n[0]).join('')}
           </div>
 
-          {!isCollapsed && (
+          {!collapsed && (
             <div className="flex-1 min-w-0">
               <p className="text-xs font-bold text-slate-900 truncate">{user.name}</p>
               <p className="text-[11px] text-slate-500 truncate">{user.plan} Plan</p>
             </div>
           )}
 
-          {!isCollapsed && (
+          {!collapsed && (
             <button
-              onClick={() => onSelectTab('login')}
+              onClick={() => handleNavClick('login')}
               className="p-1 rounded text-slate-400 hover:text-rose-600 transition-colors"
               title="Sign Out"
             >
@@ -200,6 +214,34 @@ export const Sidebar: React.FC<SidebarProps> = ({
           )}
         </div>
       </div>
-    </motion.aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* Desktop Sidebar */}
+      <motion.aside
+        animate={{ width: isCollapsed ? 80 : 260 }}
+        transition={{ duration: 0.2, ease: 'easeInOut' }}
+        className="relative hidden lg:flex flex-col h-screen bg-white text-slate-700 border-r border-slate-200/90 z-30 select-none flex-shrink-0"
+      >
+        {sidebarContent(isCollapsed)}
+      </motion.aside>
+
+      {/* Mobile Sidebar Overlay */}
+      <AnimatePresence>
+        {isMobileOpen && (
+          <motion.aside
+            initial={{ x: -280 }}
+            animate={{ x: 0 }}
+            exit={{ x: -280 }}
+            transition={{ duration: 0.25, ease: 'easeInOut' }}
+            className="fixed left-0 top-0 bottom-0 w-[260px] flex flex-col h-screen bg-white text-slate-700 border-r border-slate-200/90 z-40 select-none lg:hidden"
+          >
+            {sidebarContent(false)}
+          </motion.aside>
+        )}
+      </AnimatePresence>
+    </>
   );
 };

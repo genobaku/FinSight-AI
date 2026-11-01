@@ -122,7 +122,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-row items-center gap-2">
 
           <button
             onClick={onOpenReceiptScan}
@@ -138,7 +138,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             "
           >
             <Scan className="w-4 h-4" />
-            Scan Receipt
+            <span className="hidden sm:inline">Scan Receipt</span>
           </button>
 
           <button
@@ -304,11 +304,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           MAIN CONTENT
       ====================================================== */}
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
         {/* CASH FLOW */}
 
-        <div className="xl:col-span-2 bg-white border border-slate-200 rounded-xl">
+        <div className="lg:col-span-2 bg-white border border-slate-200 rounded-xl">
 
           <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
 
@@ -364,7 +364,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
                     <stop
                       offset="100%"
-                      stopColor="#2563EB"
+                      stopColor="red"
                       stopOpacity={0}
                     />
                   </linearGradient>
@@ -413,7 +413,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   type="monotone"
                   dataKey="revenue"
                   name="Revenue"
-                  stroke="#2563EB"
+                  stroke="green"
                   strokeWidth={2}
                   fill="url(#revenueFill)"
                 />
@@ -503,7 +503,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     className="flex items-center justify-between text-xs"
                   >
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-row items-center gap-2">
 
                       <span
                         className="w-2.5 h-2.5 rounded-full"
@@ -512,13 +512,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                         }}
                       />
 
-                      <span className="text-slate-600">
+                      <span className="text-yellow-600">
                         {item.name}
                       </span>
 
                     </div>
 
-                    <span className="font-semibold text-slate-900">
+                    <span className="font-semibold text-orange-900">
                       ${item.value.toLocaleString()}
                     </span>
 
@@ -564,9 +564,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
 
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto -mx-4 sm:mx-0">
 
-          <table className="w-full">
+          <table className="w-full min-w-[600px]">
 
             <thead>
 
@@ -737,7 +737,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
             <div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-row items-center gap-2">
 
                 <Bot className="w-4 h-4 text-blue-600" />
 

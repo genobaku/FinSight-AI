@@ -13,24 +13,28 @@ import {
   MoreHorizontal,
 } from 'lucide-react';
 import { Badge } from '../common/Badge';
-import { Invoice, InvoiceStatus, Customer } from '../../types';
+import { Invoice, InvoiceStatus } from '../../types';
 
 interface InvoiceListViewProps {
   invoices: Invoice[];
-  customers: Customer[];
-  onOpenCreateModal: () => void;
-  onOpenEditModal: (invoice: Invoice) => void;
-  onOpenPreviewModal: (invoice: Invoice) => void;
+  onOpenNewModal?: () => void;
+  onOpenCreateModal?: () => void;
+  onEditInvoice?: (invoice: Invoice) => void;
+  onOpenEditModal?: (invoice: Invoice) => void;
+  onPreviewInvoice?: (invoice: Invoice) => void;
+  onOpenPreviewModal?: (invoice: Invoice) => void;
   onDeleteInvoice: (id: string) => void;
   onUpdateStatus: (id: string, status: InvoiceStatus) => void;
-  onDuplicateInvoice: (invoice: Invoice) => void;
+  onDuplicateInvoice?: (invoice: Invoice) => void;
 }
 
 export const InvoiceListView: React.FC<InvoiceListViewProps> = ({
   invoices,
-  customers,
+  onOpenNewModal,
   onOpenCreateModal,
+  onEditInvoice,
   onOpenEditModal,
+  onPreviewInvoice,
   onOpenPreviewModal,
   onDeleteInvoice,
   onUpdateStatus,
@@ -39,6 +43,22 @@ export const InvoiceListView: React.FC<InvoiceListViewProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<string>('All');
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+
+  const handleOpenCreate = () => {
+    if (onOpenNewModal) onOpenNewModal();
+    else if (onOpenCreateModal) onOpenCreateModal();
+  };
+  const handleOpenEdit = (inv: Invoice) => {
+    if (onEditInvoice) onEditInvoice(inv);
+    else if (onOpenEditModal) onOpenEditModal(inv);
+  };
+  const handleOpenPreview = (inv: Invoice) => {
+    if (onPreviewInvoice) onPreviewInvoice(inv);
+    else if (onOpenPreviewModal) onOpenPreviewModal(inv);
+  };
+  const handleDuplicate = (inv: Invoice) => {
+    if (onDuplicateInvoice) onDuplicateInvoice(inv);
+  };
 
   const filteredInvoices = invoices.filter((inv) => {
     const search = searchTerm.toLowerCase();
@@ -95,16 +115,12 @@ export const InvoiceListView: React.FC<InvoiceListViewProps> = ({
   ).length;
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 pb-14">
+    <div className="max-w-7xl mx-auto space-y-6 pb-14">
 
-      {/* ------------------------------------------------
-          HEADER
-      ------------------------------------------------ */}
-      <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5">
+      {/* HEADER */}
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
-          
-
-          <h1 className="text-3xl font-semibold tracking-tight text-slate-900">
+          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-slate-900">
             Invoices
           </h1>
 
@@ -114,7 +130,7 @@ export const InvoiceListView: React.FC<InvoiceListViewProps> = ({
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-shrink-0">
           <button
             onClick={exportCSV}
             className="inline-flex items-center gap-2 h-10 px-4
@@ -123,132 +139,127 @@ export const InvoiceListView: React.FC<InvoiceListViewProps> = ({
               hover:bg-slate-50 transition-colors"
           >
             <Download className="w-4 h-4" />
-            Export
+            <span className="hidden sm:inline">Export</span>
           </button>
 
           <button
-            onClick={onOpenCreateModal}
+            onClick={handleOpenCreate}
             className="inline-flex items-center gap-2 h-10 px-4
               rounded-lg bg-slate-900 text-white
               text-sm font-medium
               hover:bg-slate-800 transition-colors"
           >
             <Plus className="w-4 h-4" />
-            New invoice
+            <span className="hidden sm:inline">New invoice</span>
           </button>
         </div>
       </div>
 
-     
-{/* ------------------------------------------------
-    QUICK SUMMARY
------------------------------------------------- */}
-<div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      {/* QUICK SUMMARY */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
 
-  {/* Total */}
-  <div className="bg-white border border-slate-200 rounded-xl p-5">
-    <div className="flex items-center justify-between">
-      <p className="text-sm font-medium text-slate-500">
-        Total invoices
-      </p>
+        {/* Total */}
+        <div className="bg-white border border-slate-200 rounded-xl p-4 sm:p-5">
+          <div className="flex items-center justify-between">
+            <p className="text-xs sm:text-sm font-medium text-slate-500">
+              Total invoices
+            </p>
 
-      <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
-        <FileText className="w-4 h-4 text-slate-500" />
+            <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
+              <FileText className="w-4 h-4 text-slate-500" />
+            </div>
+          </div>
+
+          <div className="mt-3 sm:mt-4 flex items-end justify-between">
+            <p className="text-xl sm:text-2xl font-semibold text-slate-900">
+              {totalInvoices}
+            </p>
+
+            <span className="text-xs text-slate-400 pb-1 hidden sm:inline">
+              All invoices
+            </span>
+          </div>
+        </div>
+
+
+        {/* Paid */}
+        <div className="bg-white border border-slate-200 rounded-xl p-4 sm:p-5">
+          <div className="flex items-center justify-between">
+            <p className="text-xs sm:text-sm font-medium text-slate-500">
+              Paid
+            </p>
+
+            <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+              <CheckCircle className="w-4 h-4 text-emerald-600" />
+            </div>
+          </div>
+
+          <div className="mt-3 sm:mt-4 flex items-end justify-between">
+            <p className="text-xl sm:text-2xl font-semibold text-slate-900">
+              {paidInvoices}
+            </p>
+
+            <span className="text-xs text-emerald-600 pb-1 hidden sm:inline">
+              Completed
+            </span>
+          </div>
+        </div>
+
+
+        {/* Pending */}
+        <div className="bg-white border border-slate-200 rounded-xl p-4 sm:p-5">
+          <div className="flex items-center justify-between">
+            <p className="text-xs sm:text-sm font-medium text-slate-500">
+              Pending
+            </p>
+
+            <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
+              <FileText className="w-4 h-4 text-amber-600" />
+            </div>
+          </div>
+
+          <div className="mt-3 sm:mt-4 flex items-end justify-between">
+            <p className="text-xl sm:text-2xl font-semibold text-slate-900">
+              {pendingInvoices}
+            </p>
+
+            <span className="text-xs text-amber-600 pb-1 hidden sm:inline">
+              Awaiting payment
+            </span>
+          </div>
+        </div>
+
+
+        {/* Overdue */}
+        <div className="bg-white border border-slate-200 rounded-xl p-4 sm:p-5">
+          <div className="flex items-center justify-between">
+            <p className="text-xs sm:text-sm font-medium text-slate-500">
+              Overdue
+            </p>
+
+            <div className="w-8 h-8 rounded-lg bg-rose-50 flex items-center justify-center">
+              <FileText className="w-4 h-4 text-rose-600" />
+            </div>
+          </div>
+
+          <div className="mt-3 sm:mt-4 flex items-end justify-between">
+            <p className="text-xl sm:text-2xl font-semibold text-slate-900">
+              {overdueInvoices}
+            </p>
+
+            <span className="text-xs text-rose-600 pb-1 hidden sm:inline">
+              Needs follow-up
+            </span>
+          </div>
+        </div>
+
       </div>
-    </div>
-
-    <div className="mt-4 flex items-end justify-between">
-      <p className="text-2xl font-semibold text-slate-900">
-        {totalInvoices}
-      </p>
-
-      <span className="text-xs text-slate-400 pb-1">
-        All invoices
-      </span>
-    </div>
-  </div>
 
 
-  {/* Paid */}
-  <div className="bg-white border border-slate-200 rounded-xl p-5">
-    <div className="flex items-center justify-between">
-      <p className="text-sm font-medium text-slate-500">
-        Paid
-      </p>
+      {/* SEARCH + FILTER */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
 
-      <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
-        <CheckCircle className="w-4 h-4 text-emerald-600" />
-      </div>
-    </div>
-
-    <div className="mt-4 flex items-end justify-between">
-      <p className="text-2xl font-semibold text-slate-900">
-        {paidInvoices}
-      </p>
-
-      <span className="text-xs text-emerald-600 pb-1">
-        Completed
-      </span>
-    </div>
-  </div>
-
-
-  {/* Pending */}
-  <div className="bg-white border border-slate-200 rounded-xl p-5">
-    <div className="flex items-center justify-between">
-      <p className="text-sm font-medium text-slate-500">
-        Pending
-      </p>
-
-      <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
-        <FileText className="w-4 h-4 text-amber-600" />
-      </div>
-    </div>
-
-    <div className="mt-4 flex items-end justify-between">
-      <p className="text-2xl font-semibold text-slate-900">
-        {pendingInvoices}
-      </p>
-
-      <span className="text-xs text-amber-600 pb-1">
-        Awaiting payment
-      </span>
-    </div>
-  </div>
-
-
-  {/* Overdue */}
-  <div className="bg-white border border-slate-200 rounded-xl p-5">
-    <div className="flex items-center justify-between">
-      <p className="text-sm font-medium text-slate-500">
-        Overdue
-      </p>
-
-      <div className="w-8 h-8 rounded-lg bg-rose-50 flex items-center justify-center">
-        <FileText className="w-4 h-4 text-rose-600" />
-      </div>
-    </div>
-
-    <div className="mt-4 flex items-end justify-between">
-      <p className="text-2xl font-semibold text-slate-900">
-        {overdueInvoices}
-      </p>
-
-      <span className="text-xs text-rose-600 pb-1">
-        Needs follow-up
-      </span>
-    </div>
-  </div>
-
-</div>
-
-
-      {/* ------------------------------------------------
-          SEARCH + FILTER
-      ------------------------------------------------ */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-
-        <div className="relative w-full md:max-w-md">
+        <div className="relative w-full sm:max-w-md">
           <Search
             className="absolute left-3.5 top-1/2 -translate-y-1/2
               w-4 h-4 text-slate-400"
@@ -268,13 +279,13 @@ export const InvoiceListView: React.FC<InvoiceListViewProps> = ({
           />
         </div>
 
-        <div className="flex items-center gap-1 overflow-x-auto">
+        <div className="flex flex-wrap items-center gap-1">
           {['All', 'Paid', 'Pending', 'Overdue', 'Draft'].map(
             (status) => (
               <button
                 key={status}
                 onClick={() => setSelectedStatus(status)}
-                className={`px-3.5 py-2 rounded-md text-sm
+                className={`px-3 py-1.5 rounded-md text-xs sm:text-sm
                   font-medium whitespace-nowrap transition-colors ${
                     selectedStatus === status
                       ? 'bg-slate-100 text-slate-900'
@@ -288,9 +299,7 @@ export const InvoiceListView: React.FC<InvoiceListViewProps> = ({
         </div>
       </div>
 
-      {/* ------------------------------------------------
-          INVOICE LIST
-      ------------------------------------------------ */}
+      {/* INVOICE LIST */}
       <div className="space-y-3">
 
         {filteredInvoices.length === 0 ? (
@@ -312,105 +321,138 @@ export const InvoiceListView: React.FC<InvoiceListViewProps> = ({
             <div
               key={inv.id}
               className="group bg-white border border-slate-200
-                rounded-xl px-5 py-4
+                rounded-xl px-4 sm:px-5 py-4
                 hover:border-slate-300
                 transition-all"
             >
-              <div className="flex flex-col xl:flex-row xl:items-center gap-5">
+              <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-5">
 
-                {/* Invoice identity */}
-                <div className="flex items-center gap-4 xl:w-[27%]">
+                {/* Invoice identity + Actions row on mobile */}
+                <div className="flex items-center justify-between md:w-[27%]">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-lg
+                      bg-slate-50 border border-slate-200
+                      flex items-center justify-center">
+                      <FileText className="w-4 h-4 text-slate-500" />
+                    </div>
 
-                  <div className="w-10 h-10 shrink-0 rounded-lg
-                    bg-slate-50 border border-slate-200
-                    flex items-center justify-center">
-                    <FileText className="w-4 h-4 text-slate-500" />
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-slate-900">
+                        {inv.invoiceNumber}
+                      </p>
+
+                      <p className="mt-0.5 text-xs text-slate-400 truncate">
+                        Issued {inv.issueDate}
+                      </p>
+                    </div>
                   </div>
 
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-slate-900">
-                      {inv.invoiceNumber}
-                    </p>
-
-                    <p className="mt-1 text-xs text-slate-400 truncate">
-                      Issued {inv.issueDate}
-                    </p>
+                  {/* Actions visible on mobile inline */}
+                  <div className="flex md:hidden items-center gap-1 relative">
+                    <button
+                      onClick={() => handleOpenPreview(inv)}
+                      className="p-2 rounded-md text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors"
+                      title="Preview"
+                    >
+                      <Eye className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleOpenEdit(inv)}
+                      className="p-2 rounded-md text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors"
+                      title="Edit"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() =>
+                        setActiveMenuId(activeMenuId === inv.id ? null : inv.id)
+                      }
+                      className="p-2 rounded-md text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors"
+                      title="More"
+                    >
+                      <MoreHorizontal className="w-4 h-4" />
+                    </button>
+                    {activeMenuId === inv.id && (
+                      <div className="absolute right-0 top-10 z-20 w-44 bg-white border border-slate-200 rounded-lg shadow-lg py-1">
+                        {inv.status !== 'Paid' && (
+                          <button
+                            onClick={() => { onUpdateStatus(inv.id, 'Paid'); setActiveMenuId(null); }}
+                            className="w-full px-3 py-2.5 flex items-center gap-2.5 text-left text-sm text-slate-700 hover:bg-slate-50"
+                          >
+                            <CheckCircle className="w-4 h-4 text-emerald-500" />
+                            Mark as paid
+                          </button>
+                        )}
+                        <button
+                          onClick={() => { handleDuplicate(inv); setActiveMenuId(null); }}
+                          className="w-full px-3 py-2.5 flex items-center gap-2.5 text-left text-sm text-slate-700 hover:bg-slate-50"
+                        >
+                          <Copy className="w-4 h-4 text-slate-400" />
+                          Duplicate
+                        </button>
+                        <div className="my-1 border-t border-slate-100" />
+                        <button
+                          onClick={() => { onDeleteInvoice(inv.id); setActiveMenuId(null); }}
+                          className="w-full px-3 py-2.5 flex items-center gap-2.5 text-left text-sm text-rose-600 hover:bg-rose-50"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Delete
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
 
                 {/* Customer */}
-                <div className="xl:w-[24%] min-w-0">
-                  <p className="text-xs text-slate-400 mb-1">
-                    Customer
-                  </p>
-
+                <div className="md:flex-1 min-w-0">
+                  <p className="text-xs text-slate-400 mb-0.5">Customer</p>
                   <p className="text-sm font-medium text-slate-800 truncate">
                     {inv.customerName}
                   </p>
-
                   <p className="text-xs text-slate-400 truncate mt-0.5">
                     {inv.customerEmail}
                   </p>
                 </div>
 
-                {/* Due */}
-                <div className="xl:w-[15%]">
-                  <p className="text-xs text-slate-400 mb-1">
-                    Due
-                  </p>
-
-                  <p className="text-sm text-slate-700">
-                    {inv.dueDate}
-                  </p>
-
-                  <p className="text-xs text-slate-400 mt-0.5">
-                    {inv.paymentTerms}
-                  </p>
+                {/* Due - hidden on small mobile */}
+                <div className="hidden sm:block md:w-[15%]">
+                  <p className="text-xs text-slate-400 mb-0.5">Due</p>
+                  <p className="text-sm text-slate-700">{inv.dueDate}</p>
+                  <p className="text-xs text-slate-400 mt-0.5">{inv.paymentTerms}</p>
                 </div>
 
-                {/* Status */}
-                <div className="xl:w-[13%]">
-                  <p className="text-xs text-slate-400 mb-1.5">
-                    Status
-                  </p>
+                {/* Status + Amount row on mobile */}
+                <div className="flex items-center justify-between md:contents">
+                  <div className="md:w-[13%]">
+                    <p className="text-xs text-slate-400 mb-1 hidden md:block">Status</p>
+                    <Badge status={inv.status} />
+                  </div>
 
-                  <Badge status={inv.status} />
+                  <div className="md:w-[13%] md:text-right">
+                    <p className="text-xs text-slate-400 mb-0.5 hidden md:block">Amount</p>
+                    <p className="text-base font-semibold text-slate-900">
+                      {inv.currency}
+                      {inv.total.toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                      })}
+                    </p>
+                  </div>
                 </div>
 
-                {/* Amount */}
-                <div className="xl:w-[13%] xl:text-right">
-                  <p className="text-xs text-slate-400 mb-1">
-                    Amount
-                  </p>
-
-                  <p className="text-base font-semibold text-slate-900">
-                    {inv.currency}
-                    {inv.total.toLocaleString(undefined, {
-                      minimumFractionDigits: 2,
-                    })}
-                  </p>
-                </div>
-
-                {/* Actions */}
-                <div className="xl:ml-auto relative">
-
+                {/* Actions - desktop only */}
+                <div className="hidden md:block md:ml-auto relative">
                   <div className="flex items-center justify-end gap-1">
-
                     <button
-                      onClick={() => onOpenPreviewModal(inv)}
-                      className="p-2 rounded-md text-slate-400
-                        hover:text-slate-800 hover:bg-slate-100
-                        transition-colors"
+                      onClick={() => handleOpenPreview(inv)}
+                      className="p-2 rounded-md text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors"
                       title="Preview"
                     >
                       <Eye className="w-4 h-4" />
                     </button>
 
                     <button
-                      onClick={() => onOpenEditModal(inv)}
-                      className="p-2 rounded-md text-slate-400
-                        hover:text-slate-800 hover:bg-slate-100
-                        transition-colors"
+                      onClick={() => handleOpenEdit(inv)}
+                      className="p-2 rounded-md text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors"
                       title="Edit"
                     >
                       <Edit2 className="w-4 h-4" />
@@ -418,13 +460,9 @@ export const InvoiceListView: React.FC<InvoiceListViewProps> = ({
 
                     <button
                       onClick={() =>
-                        setActiveMenuId(
-                          activeMenuId === inv.id ? null : inv.id
-                        )
+                        setActiveMenuId(activeMenuId === inv.id ? null : inv.id)
                       }
-                      className="p-2 rounded-md text-slate-400
-                        hover:text-slate-800 hover:bg-slate-100
-                        transition-colors"
+                      className="p-2 rounded-md text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors"
                       title="More"
                     >
                       <MoreHorizontal className="w-4 h-4" />
@@ -455,7 +493,7 @@ export const InvoiceListView: React.FC<InvoiceListViewProps> = ({
 
                       <button
                         onClick={() => {
-                          onDuplicateInvoice(inv);
+                          handleDuplicate(inv);
                           setActiveMenuId(null);
                         }}
                         className="w-full px-3 py-2.5
@@ -507,4 +545,3 @@ export const InvoiceListView: React.FC<InvoiceListViewProps> = ({
     </div>
   );
 };
-

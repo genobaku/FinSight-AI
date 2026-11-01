@@ -4,12 +4,12 @@ import {
   Plus,
   Bell,
   Scan,
-  FileText,
   User,
   Settings,
   LogOut,
   ChevronDown,
   Sparkles,
+  Menu,
 } from 'lucide-react';
 import { TabType, UserProfile } from '../../types';
 
@@ -21,6 +21,7 @@ interface NavbarProps {
   onOpenReceiptScan: () => void;
   unreadNotificationsCount: number;
   user: UserProfile;
+  onOpenMobileMenu: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -31,6 +32,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenReceiptScan,
   unreadNotificationsCount,
   user,
+  onOpenMobileMenu,
 }) => {
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
 
@@ -62,51 +64,72 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   return (
-    <header className="h-[72px] bg-white border-b border-slate-200/90 px-6 sm:px-8 flex items-center justify-between sticky top-0 z-20">
-      {/* Title */}
-      <div className="flex items-center gap-3">
-        <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">
-          {getPageTitle(currentTab)}
-        </h1>
-        {currentTab === 'copilot' && (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-600 border border-blue-200">
-            <Sparkles className="w-3 h-3 text-blue-600" /> Powered by Gemini
-          </span>
-        )}
+    <header className="h-[72px] bg-white border-b border-slate-200/90 px-4 sm:px-6 lg:px-8 flex items-center justify-between sticky top-0 z-20 gap-3">
+      {/* Left: Hamburger (mobile) + Title */}
+      <div className="flex items-center gap-3 min-w-0">
+        {/* Hamburger - only on mobile */}
+        <button
+          onClick={onOpenMobileMenu}
+          className="lg:hidden p-2 rounded-xl text-slate-500 hover:bg-slate-100 transition-colors flex-shrink-0"
+          title="Open menu"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+
+        <div className="flex items-center gap-2 min-w-0">
+          <h1 className="text-base sm:text-xl font-extrabold text-slate-900 tracking-tight truncate">
+            {getPageTitle(currentTab)}
+          </h1>
+          {currentTab === 'copilot' && (
+            <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-600 border border-blue-200 flex-shrink-0">
+              <Sparkles className="w-3 h-3 text-blue-600" /> Powered by Gemini
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Right Controls */}
-      <div className="flex items-center gap-3">
-        {/* Search Bar Trigger */}
+      <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+        {/* Search Bar Trigger - hidden on small mobile */}
         <button
           onClick={onOpenSearch}
-          className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl bg-slate-100/90 hover:bg-slate-200/70 border border-transparent text-slate-500 text-xs font-medium transition-all cursor-pointer w-64 md:w-80 justify-between"
+          className="hidden md:flex items-center gap-2.5 px-3.5 py-2 rounded-xl bg-slate-100/90 hover:bg-slate-200/70 border border-transparent text-slate-500 text-xs font-medium transition-all cursor-pointer w-48 lg:w-72 xl:w-80 justify-between"
         >
           <div className="flex items-center gap-2 truncate">
             <Search className="w-4 h-4 text-slate-400 flex-shrink-0" />
-            <span className="truncate">Search invoices, vendors, or AI reports...</span>
+            <span className="truncate hidden lg:inline">Search invoices, vendors or AI reports...</span>
+            <span className="truncate lg:hidden">Search...</span>
           </div>
           <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] bg-white rounded-md border border-slate-200 font-mono text-slate-400">
             ⌘K
           </kbd>
         </button>
 
-        {/* Quick Actions Dropdown / Buttons */}
+        {/* Search icon only on small screens */}
+        <button
+          onClick={onOpenSearch}
+          className="md:hidden p-2 rounded-xl text-slate-500 hover:bg-slate-100 transition-colors"
+          title="Search"
+        >
+          <Search className="w-5 h-5" />
+        </button>
+
+        {/* Quick Actions */}
         <div className="flex items-center gap-2">
           <button
             onClick={onOpenReceiptScan}
             className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-all active:scale-95"
           >
             <Scan className="w-4 h-4 text-blue-600" />
-            <span>Scan Receipt</span>
+            <span className="hidden lg:inline">Scan Receipt</span>
           </button>
 
           <button
             onClick={onOpenNewInvoice}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs transition-all active:scale-95"
+            className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs transition-all active:scale-95"
           >
             <Plus className="w-4 h-4" />
-            <span>Create Invoice</span>
+            <span className="hidden sm:inline">Create Invoice</span>
           </button>
         </div>
 
