@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BarChart3, TrendingUp, DollarSign, Download, Calendar, AlertCircle } from 'lucide-react';
 import {
   XAxis,
@@ -17,21 +17,31 @@ import { computeRealAnalytics } from '../../lib/analyticsEngine';
 
 
 
+
 export const AnalyticsView = ({
   invoices = [],
   expenses = [],
   receipts = []
 }) => {
-  const analytics = computeRealAnalytics(invoices, expenses, receipts);
-  const {
-    totalRevenue,
-    totalExpenses,
-    netProfit,
-    profitMargin,
-    cashFlow,
-    expenseBreakdown,
-    hasData
-  } = analytics;
+  const [selectedMonths, setSelectedMonths] = useState(12);
+
+const analytics = computeRealAnalytics(
+  invoices,
+  expenses,
+  receipts,
+  selectedMonths
+);
+
+const {
+  totalRevenue,
+  totalExpenses,
+  netProfit,
+  profitMargin,
+  cashFlow,
+  expenseBreakdown,
+  hasData
+} = analytics;
+
 
   const maxExpenseCategoryVal = expenseBreakdown.reduce((max, c) => Math.max(max, c.value), 1);
 
@@ -46,12 +56,24 @@ export const AnalyticsView = ({
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <button className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-slate-500" />
-            <span>Actual Records ({invoices.length + expenses.length + receipts.length})</span>
-          </button>
-        </div>
+        <div className="flex items-center gap-3 flex-wrap">
+  <select
+    value={selectedMonths}
+    onChange={(e) => setSelectedMonths(Number(e.target.value))}
+    className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-200 outline-none cursor-pointer"
+  >
+    <option value={1}>Last 1 Month</option>
+    <option value={3}>Last 3 Months</option>
+    <option value={6}>Last 6 Months</option>
+    <option value={12}>Last 12 Months</option>
+  </select>
+
+  <span className="text-xs text-slate-500">
+    {analytics.recordCount.invoices +
+      analytics.recordCount.expenses +
+      analytics.recordCount.receipts} records
+  </span>
+</div>
       </div>
 
       {/* Primary Revenue vs Expense Chart */}
