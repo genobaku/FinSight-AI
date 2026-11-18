@@ -1,0 +1,41 @@
+# Multi-stage production container for Finsight AI Core API
+FROM python:3.12-slim AS base
+
+# Install system dependencies for OCR, OpenCV, and PDF processing
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libgl1 \
+    libglib2.0-0 \
+    libgomp1 \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Install Python requirements
+COPY requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy repository models, core engine, and API code
+COPY models /app/models
+COPY backend /app/backend
+COPY core_api /app/core_api
+
+# Create private storage vault directory
+RUN mkdir -p /app/storage_vault && chmod 700 /app/storage_vault
+
+# Environment defaults
+ENV PYTHONUNBUFFERED=1 \
+    PORT=8000 \
+    HOST=0.0.0.0 \
+    MODEL_PATH=models/production/transaction_classifier.joblib \
+    VECTORIZER_PATH=models/production/tfidf_vectorizer.joblib \
+    STORAGE_DIR=/app/storage_vault \
+    DATABASE_URL=sqlite:////app/storage_vault/finsight_core.db
+
+EXPOSE 8000
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD curl -f http://localhost:8000/v1/health || exit 1
+
+CMD ["python", "-m", "uvicorn", "core_api.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]

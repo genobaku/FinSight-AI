@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  finsight-core-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.core
+    container_name: finsight-ai-core-api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - FINSIGHT_API_KEYS=${FINSIGHT_API_KEYS:-finsight-core-live-key-2026,finsight-demo-app-key-2026}
+      - JWT_SECRET=${JWT_SECRET:-super-secret-finsight-core-jwt-key-2026}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-finsight}
+      - STORAGE_DIR=/app/storage_vault
+      - MODEL_PATH=models/production/transaction_classifier.joblib
+      - VECTORIZER_PATH=models/production/tfidf_vectorizer.joblib
+    volumes:
+      - core_storage_vault:/app/storage_vault
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: finsight-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-finsight}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-finsight}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+  core_storage_vault:

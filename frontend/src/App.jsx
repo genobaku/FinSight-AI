@@ -7,15 +7,15 @@ import {
   INITIAL_NOTIFICATIONS,
   INITIAL_RECEIPTS,
   INITIAL_USER,
-  INITIAL_VENDORS } from
-'./data/mockData';
-
+  INITIAL_VENDORS
+} from './data/mockData';
 
 // Layout
 import { Sidebar } from './components/layout/Sidebar';
 import { Navbar } from './components/layout/Navbar';
 import { GlobalSearchModal } from './components/layout/GlobalSearchModal';
 import { IntegrationStatusHeader } from './components/common/IntegrationStatusHeader';
+import { ProfileDrawer } from './components/profile/ProfileDrawer';
 
 // Views
 import { LandingPage } from './components/landing/LandingPage';
@@ -32,6 +32,7 @@ import { AnalyticsView } from './components/views/AnalyticsView';
 import { CopilotView } from './components/views/CopilotView';
 import { NotificationsView } from './components/views/NotificationsView';
 import { SettingsView } from './components/views/SettingsView';
+import { ProfileView } from './components/profile/ProfileView';
 
 // Supabase Service Integration
 import { isSupabaseConfigured } from './lib/supabase';
@@ -43,22 +44,117 @@ import {
   saveSupabaseExpense,
   fetchSupabaseReceipts,
   saveSupabaseReceipt,
-  syncAllToSupabase } from
-'./lib/supabaseService';
+  fetchSupabaseUserProfile,
+  syncAllToSupabase
+} from './lib/supabaseService';
 
 export function App() {
-  const [currentTab, setCurrentTab] = useState('dashboard');
+  const [currentTab, setCurrentTab] = useState('landing');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isProfileDrawerOpen, setIsProfileDrawerOpen] = useState(false);
 
-  // Core Datasets (Default to empty arrays; populated via user uploads or Supabase sync)
-  const [user, setUser] = useState(INITIAL_USER);
-  const [invoices, setInvoices] = useState([]);
-  const [customers, setCustomers] = useState([]);
-  const [vendors, setVendors] = useState([]);
-  const [expenses, setExpenses] = useState([]);
-  const [receipts, setReceipts] = useState([]);
-  const [notifications, setNotifications] = useState([]);
-  const [aiInsights, setAiInsights] = useState([]);
+  // Core Datasets initialized with Persistent LocalStorage Fallback or Mock Data
+  const [user, setUser] = useState(() => {
+    try {
+      const cached = localStorage.getItem('finsight_user_profile');
+      return cached ? { ...INITIAL_USER, ...JSON.parse(cached) } : INITIAL_USER;
+    } catch (e) {
+      return INITIAL_USER;
+    }
+  });
+
+  const [invoices, setInvoices] = useState(() => {
+    try {
+      const cached = localStorage.getItem('finsight_invoices');
+      return cached ? JSON.parse(cached) : INITIAL_INVOICES;
+    } catch (e) {
+      return INITIAL_INVOICES;
+    }
+  });
+
+  const [customers, setCustomers] = useState(() => {
+    try {
+      const cached = localStorage.getItem('finsight_customers');
+      return cached ? JSON.parse(cached) : INITIAL_CUSTOMERS;
+    } catch (e) {
+      return INITIAL_CUSTOMERS;
+    }
+  });
+
+  const [vendors, setVendors] = useState(() => {
+    try {
+      const cached = localStorage.getItem('finsight_vendors');
+      return cached ? JSON.parse(cached) : INITIAL_VENDORS;
+    } catch (e) {
+      return INITIAL_VENDORS;
+    }
+  });
+
+  const [expenses, setExpenses] = useState(() => {
+    try {
+      const cached = localStorage.getItem('finsight_expenses');
+      return cached ? JSON.parse(cached) : INITIAL_EXPENSES;
+    } catch (e) {
+      return INITIAL_EXPENSES;
+    }
+  });
+
+  const [receipts, setReceipts] = useState(() => {
+    try {
+      const cached = localStorage.getItem('finsight_receipts');
+      return cached ? JSON.parse(cached) : INITIAL_RECEIPTS;
+    } catch (e) {
+      return INITIAL_RECEIPTS;
+    }
+  });
+
+  const [notifications, setNotifications] = useState(() => {
+    try {
+      const cached = localStorage.getItem('finsight_notifications');
+      return cached ? JSON.parse(cached) : INITIAL_NOTIFICATIONS;
+    } catch (e) {
+      return INITIAL_NOTIFICATIONS;
+    }
+  });
+
+  const [aiInsights, setAiInsights] = useState(INITIAL_AI_INSIGHTS);
+
+  // Sync state changes to localStorage whenever they mutate
+  useEffect(() => {
+    try {
+      localStorage.setItem('finsight_invoices', JSON.stringify(invoices));
+    } catch (e) {}
+  }, [invoices]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('finsight_expenses', JSON.stringify(expenses));
+    } catch (e) {}
+  }, [expenses]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('finsight_receipts', JSON.stringify(receipts));
+    } catch (e) {}
+  }, [receipts]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('finsight_customers', JSON.stringify(customers));
+    } catch (e) {}
+  }, [customers]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('finsight_vendors', JSON.stringify(vendors));
+    } catch (e) {}
+  }, [vendors]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('finsight_notifications', JSON.stringify(notifications));
+    } catch (e) {}
+  }, [notifications]);
 
   // Modals & Active Selections
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -68,9 +164,20 @@ export function App() {
 
   // Fetch initial records from Supabase on mount if configured
   useEffect(() => {
+    // Check localStorage cache first
+    const cachedProfile = localStorage.getItem('finsight_user_profile');
+    if (cachedProfile) {
+      try {
+        setUser((prev) => ({ ...prev, ...JSON.parse(cachedProfile) }));
+      } catch (e) {}
+    }
+
     if (!isSupabaseConfigured()) return;
 
     async function loadFromSupabase() {
+      const dbUser = await fetchSupabaseUserProfile();
+      if (dbUser) setUser(dbUser);
+
       const dbInvoices = await fetchSupabaseInvoices();
       if (dbInvoices) setInvoices(dbInvoices);
 
@@ -93,7 +200,7 @@ export function App() {
     if (selectedInvoiceForEdit) {
       savedInvoice = { ...selectedInvoiceForEdit, ...invoiceData };
       setInvoices((prev) =>
-      prev.map((i) => i.id === selectedInvoiceForEdit.id ? savedInvoice : i)
+        prev.map((i) => (i.id === selectedInvoiceForEdit.id ? savedInvoice : i))
       );
     } else {
       savedInvoice = {
@@ -116,14 +223,14 @@ export function App() {
 
   const handleUpdateStatus = (id, status) => {
     setInvoices((prev) =>
-    prev.map((i) => {
-      if (i.id === id) {
-        const updated = { ...i, status };
-        saveSupabaseInvoice(updated);
-        return updated;
-      }
-      return i;
-    })
+      prev.map((i) => {
+        if (i.id === id) {
+          const updated = { ...i, status };
+          saveSupabaseInvoice(updated);
+          return updated;
+        }
+        return i;
+      })
     );
   };
 
@@ -138,54 +245,52 @@ export function App() {
   };
 
   const handleAddReceipt = (newRcpt) => {
-    setReceipts((prev) => [newRcpt, ...prev]);
-    saveSupabaseReceipt(newRcpt);
+    const receiptWithId = {
+      ...newRcpt,
+      id: `rcpt-${Date.now()}`
+    };
+    setReceipts((prev) => [receiptWithId, ...prev]);
+    saveSupabaseReceipt(receiptWithId);
   };
 
   // Handlers for Customers & Vendors
   const handleAddCustomer = (newCust) => {
-    const customerWithId = {
+    const custWithId = {
       ...newCust,
-      id: `cust-${Date.now()}`,
-      createdAt: new Date().toISOString().split('T')[0]
+      id: `cust-${Date.now()}`
     };
-    setCustomers((prev) => [customerWithId, ...prev]);
+    setCustomers((prev) => [custWithId, ...prev]);
   };
 
-  const handleAddVendor = (newVen) => {
-    const vendorWithId = {
-      ...newVen,
-      id: `ven-${Date.now()}`,
-      createdAt: new Date().toISOString().split('T')[0]
+  const handleAddVendor = (newVend) => {
+    const vendWithId = {
+      ...newVend,
+      id: `vend-${Date.now()}`
     };
-    setVendors((prev) => [vendorWithId, ...prev]);
+    setVendors((prev) => [vendWithId, ...prev]);
   };
 
+  // Handlers for Notifications
   const handleMarkNotificationRead = (id) => {
     setNotifications((prev) =>
-    prev.map((n) => n.id === id ? { ...n, read: true } : n)
+      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
     );
   };
 
+  // Sync state to Supabase
   const handleSyncToSupabase = async () => {
-    return await syncAllToSupabase({
-      invoices,
-      expenses,
-      receipts,
-      customers,
-      vendors,
-      user
-    });
+    return await syncAllToSupabase(invoices, expenses, receipts);
   };
 
-  // Render standalone views (Landing & Login)
   if (currentTab === 'landing') {
     return (
       <LandingPage
         onLaunchApp={() => setCurrentTab('dashboard')}
-        onLogin={() => setCurrentTab('login')} />);
-
-
+        onLogin={() => setCurrentTab('login')}
+        onGetStarted={() => setCurrentTab('dashboard')}
+        onSignIn={() => setCurrentTab('login')}
+      />
+    );
   }
 
   if (currentTab === 'login') {
@@ -193,13 +298,15 @@ export function App() {
       <LoginPage
         onSuccess={() => setCurrentTab('dashboard')}
         onLoginSuccess={() => setCurrentTab('dashboard')}
-        onBackToLanding={() => setCurrentTab('landing')} />);
-
-
+        onBackToLanding={() => setCurrentTab('landing')}
+      />
+    );
   }
 
+  const isCopilotTab = currentTab === 'copilot';
+
   return (
-    <div className="flex h-screen w-screen bg-slate-50 overflow-hidden font-sans antialiased text-slate-900">
+    <div className="flex h-screen w-screen bg-slate-50 dark:bg-[#0b0f17] overflow-hidden font-sans antialiased text-slate-900 dark:text-slate-100 transition-colors">
       {/* Sidebar */}
       <Sidebar
         currentTab={currentTab}
@@ -207,119 +314,155 @@ export function App() {
         isCollapsed={isSidebarCollapsed}
         onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
         unreadNotificationsCount={unreadNotificationsCount}
-        user={user} />
-      
+        user={user}
+        onOpenNewInvoice={() => {
+          setSelectedInvoiceForEdit(undefined);
+          setIsInvoiceModalOpen(true);
+        }}
+      />
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
-        <Navbar
-          currentTab={currentTab}
-          onSelectTab={setCurrentTab}
-          onOpenSearch={() => setIsSearchOpen(true)}
-          onOpenNewInvoice={() => {
-            setSelectedInvoiceForEdit(undefined);
-            setIsInvoiceModalOpen(true);
-          }}
-          onOpenReceiptScan={() => setCurrentTab('receipts')}
-          unreadNotificationsCount={unreadNotificationsCount}
-          user={user} />
-        
-
-        <main className="flex-1 overflow-y-auto px-6 py-6 sm:px-8 bg-slate-50 space-y-6">
-          <IntegrationStatusHeader onSelectTab={setCurrentTab} />
-
-          {currentTab === 'dashboard' &&
-          <DashboardView
-            user={user}
-            invoices={invoices}
-            expenses={expenses}
-            receipts={receipts}
-            aiInsights={aiInsights}
+        {/* Top Navbar */}
+        {!isCopilotTab && (
+          <Navbar
+            currentTab={currentTab}
             onSelectTab={setCurrentTab}
+            onOpenSearch={() => setIsSearchOpen(true)}
             onOpenNewInvoice={() => {
               setSelectedInvoiceForEdit(undefined);
               setIsInvoiceModalOpen(true);
             }}
             onOpenReceiptScan={() => setCurrentTab('receipts')}
-            onSelectInvoice={(inv) => setSelectedInvoiceForPreview(inv)} />
-
-          }
-
-          {currentTab === 'invoices' &&
-          <InvoiceListView
-            invoices={invoices}
-            onOpenNewModal={() => {
-              setSelectedInvoiceForEdit(undefined);
-              setIsInvoiceModalOpen(true);
-            }}
-            onEditInvoice={(inv) => {
-              setSelectedInvoiceForEdit(inv);
-              setIsInvoiceModalOpen(true);
-            }}
-            onPreviewInvoice={(inv) => setSelectedInvoiceForPreview(inv)}
-            onDeleteInvoice={handleDeleteInvoice}
-            onUpdateStatus={handleUpdateStatus} />
-
-          }
-
-          {currentTab === 'expenses' &&
-          <ExpensesView
-            expenses={expenses}
-            vendors={vendors}
-            onAddExpense={handleAddExpense} />
-
-          }
-
-          {currentTab === 'receipts' &&
-          <ReceiptScannerView
-            receipts={receipts}
-            onAddReceipt={handleAddReceipt} />
-
-          }
-
-          {currentTab === 'customers' &&
-          <CustomersView
-            customers={customers}
-            onAddCustomer={handleAddCustomer} />
-
-          }
-
-          {currentTab === 'vendors' &&
-          <VendorsView
-            vendors={vendors}
-            onAddVendor={handleAddVendor} />
-
-          }
-
-          {currentTab === 'analytics' &&
-          <AnalyticsView
-            invoices={invoices}
-            expenses={expenses}
-            receipts={receipts} />
-
-          }
-
-          {currentTab === 'copilot' &&
-          <CopilotView invoices={invoices} expenses={expenses} />
-          }
-
-          {currentTab === 'notifications' &&
-          <NotificationsView
-            notifications={notifications}
-            onMarkAsRead={handleMarkNotificationRead}
-            onSelectTab={setCurrentTab} />
-
-          }
-
-          {currentTab === 'settings' &&
-          <SettingsView
+            onOpenProfileDrawer={() => setIsProfileDrawerOpen(true)}
+            unreadNotificationsCount={unreadNotificationsCount}
             user={user}
-            onUpdateUser={(updated) => setUser({ ...user, ...updated })}
-            onSyncSupabase={handleSyncToSupabase} />
+          />
+        )}
 
-          }
+        <main
+          className={`flex-1 overflow-hidden transition-colors ${
+            isCopilotTab
+              ? 'p-0 flex flex-col h-full w-full'
+              : 'overflow-y-auto px-6 py-6 sm:px-8 bg-slate-50 dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100 space-y-6'
+          }`}
+        >
+          {/* Integration Status Header ONLY on Home / Dashboard view */}
+          {currentTab === 'dashboard' && (
+            <IntegrationStatusHeader onSelectTab={setCurrentTab} />
+          )}
+
+          {currentTab === 'dashboard' && (
+            <DashboardView
+              user={user}
+              invoices={invoices}
+              expenses={expenses}
+              receipts={receipts}
+              aiInsights={aiInsights}
+              onSelectTab={setCurrentTab}
+              onOpenNewInvoice={() => {
+                setSelectedInvoiceForEdit(undefined);
+                setIsInvoiceModalOpen(true);
+              }}
+              onOpenReceiptScan={() => setCurrentTab('receipts')}
+              onSelectInvoice={(inv) => setSelectedInvoiceForPreview(inv)}
+            />
+          )}
+
+          {currentTab === 'invoices' && (
+            <InvoiceListView
+              invoices={invoices}
+              customers={customers}
+              onOpenCreateModal={() => {
+                setSelectedInvoiceForEdit(undefined);
+                setIsInvoiceModalOpen(true);
+              }}
+              onOpenEditModal={(inv) => {
+                setSelectedInvoiceForEdit(inv);
+                setIsInvoiceModalOpen(true);
+              }}
+              onPreviewInvoice={(inv) => setSelectedInvoiceForPreview(inv)}
+              onDeleteInvoice={handleDeleteInvoice}
+              onUpdateStatus={handleUpdateStatus}
+            />
+          )}
+
+          {currentTab === 'expenses' && (
+            <ExpensesView
+              expenses={expenses}
+              vendors={vendors}
+              onAddExpense={handleAddExpense}
+            />
+          )}
+
+          {currentTab === 'receipts' && (
+            <ReceiptScannerView
+              receipts={receipts}
+              onAddReceipt={handleAddReceipt}
+            />
+          )}
+
+          {currentTab === 'customers' && (
+            <CustomersView
+              customers={customers}
+              onAddCustomer={handleAddCustomer}
+            />
+          )}
+
+          {currentTab === 'vendors' && (
+            <VendorsView
+              vendors={vendors}
+              onAddVendor={handleAddVendor}
+            />
+          )}
+
+          {currentTab === 'analytics' && (
+            <AnalyticsView
+              invoices={invoices}
+              expenses={expenses}
+              receipts={receipts}
+            />
+          )}
+
+          {currentTab === 'copilot' && (
+            <CopilotView invoices={invoices} expenses={expenses} />
+          )}
+
+          {currentTab === 'profile' && (
+            <ProfileView
+              user={user}
+              onUpdateUser={(updated) => setUser({ ...user, ...updated })}
+              onSelectTab={setCurrentTab}
+            />
+          )}
+
+          {currentTab === 'notifications' && (
+            <NotificationsView
+              notifications={notifications}
+              onMarkAsRead={handleMarkNotificationRead}
+              onSelectTab={setCurrentTab}
+            />
+          )}
+
+          {currentTab === 'settings' && (
+            <SettingsView
+              user={user}
+              onUpdateUser={(updated) => setUser({ ...user, ...updated })}
+              onSyncSupabase={handleSyncToSupabase}
+            />
+          )}
         </main>
       </div>
+
+      {/* Kaggle-style Profile Slidebar Drawer (Right Side) */}
+      <ProfileDrawer
+        isOpen={isProfileDrawerOpen}
+        onClose={() => setIsProfileDrawerOpen(false)}
+        user={user}
+        onSelectTab={setCurrentTab}
+        onSignOut={() => setCurrentTab('login')}
+        unreadNotificationsCount={unreadNotificationsCount}
+      />
 
       {/* Modals */}
       <GlobalSearchModal
@@ -330,8 +473,8 @@ export function App() {
         vendors={vendors}
         expenses={expenses}
         onSelectTab={setCurrentTab}
-        onSelectInvoice={(inv) => setSelectedInvoiceForPreview(inv)} />
-      
+        onSelectInvoice={(inv) => setSelectedInvoiceForPreview(inv)}
+      />
 
       <InvoiceModal
         isOpen={isInvoiceModalOpen}
@@ -342,17 +485,17 @@ export function App() {
         onSaveInvoice={handleSaveInvoice}
         invoices={invoices}
         customers={customers}
-        initialInvoice={selectedInvoiceForEdit} />
-      
+        initialInvoice={selectedInvoiceForEdit}
+      />
 
       <InvoicePreviewModal
         isOpen={!!selectedInvoiceForPreview}
         onClose={() => setSelectedInvoiceForPreview(null)}
         invoice={selectedInvoiceForPreview}
-        user={user} />
-      
-    </div>);
-
+        user={user}
+      />
+    </div>
+  );
 }
 
 export default App;

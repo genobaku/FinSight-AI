@@ -1,0 +1,7 @@
+INVOICE
+Invoice Number: INV-2026-9041
+Date: 2026-10-24
+Vendor: Aetheria Cloud Systems Ltd
+Subtotal: $12,000.00
+Tax: $2,160.00
+Total Amount: $14,160.00

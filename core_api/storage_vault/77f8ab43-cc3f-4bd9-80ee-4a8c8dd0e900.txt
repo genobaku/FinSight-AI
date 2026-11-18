@@ -1,0 +1,10 @@
+COFFEE ROASTERS INC.
+100 Pine Street, San Francisco, CA
+Date: 2026-08-20
+Invoice #: REC-8831
+1 Cold Brew Latte 5.50 5.50
+1 Croissant Pastry 4.25 4.25
+Subtotal: .75
+Tax (8.5%): .83
+Total: .58
+Payment: Apple Pay

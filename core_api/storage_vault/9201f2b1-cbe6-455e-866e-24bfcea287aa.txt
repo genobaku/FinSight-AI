@@ -1,0 +1,3 @@
+Receipt
+Store: North Star Coffee
+Total: 14.50

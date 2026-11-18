@@ -21,6 +21,10 @@ env/
 .env.test.local
 .env.production.local
 
+# SQLite databases
+*.db
+*.sqlite3
+
 # Temporary files & OS files
 .DS_Store
 Thumbs.db
