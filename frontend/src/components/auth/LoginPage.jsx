@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { Mail, ArrowLeft, ArrowRight, Lock, User, Building, ShieldCheck, Check } from 'lucide-react';
+import { motion } from 'motion/react';
+import { Mail, ArrowLeft, ArrowRight, Lock, User, Building, ShieldCheck, Check, AlertCircle } from 'lucide-react';
+import { getSupabaseClient, isSupabaseConfigured } from '../../lib/supabase';
 
 // Cookie helper utilities
 export const getCookie = (name) => {
@@ -35,6 +36,7 @@ export const LoginPage = ({
   const [fullName, setFullName] = useState('');
   const [company, setCompany] = useState('');
   const [formError, setFormError] = useState('');
+  const [authNotice, setAuthNotice] = useState('');
 
   // Cookie banner state
   const [cookieConsent, setCookieConsent] = useState(() => {
@@ -42,8 +44,21 @@ export const LoginPage = ({
   });
   const [showCookieDetails, setShowCookieDetails] = useState(false);
 
-  // Check existing session cookie on mount
+  // Check existing session cookie or Supabase session on mount
   useEffect(() => {
+    const supabase = getSupabaseClient();
+    if (supabase) {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session?.user) {
+          handleCompleteAuth({
+            email: session.user.email,
+            name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0],
+            provider: session.user.app_metadata?.provider || 'supabase'
+          });
+        }
+      });
+    }
+
     const savedUser = getCookie('finsight_session_user');
     if (savedUser) {
       try {
@@ -51,43 +66,76 @@ export const LoginPage = ({
         if (parsed?.email) {
           setEmail(parsed.email);
         }
-      } catch (e) {
-        // ignore parse error
-      }
+      } catch (e) {}
     }
   }, []);
 
   const handleCompleteAuth = (userData) => {
-    // Persist authenticated user session in cookies
     const sessionPayload = {
       email: userData.email,
-      name: userData.name || userData.email.split('@')[0],
+      name: userData.name || userData.email?.split('@')[0] || 'User',
       provider: userData.provider || 'email',
       authenticatedAt: new Date().toISOString()
     };
     setCookie('finsight_session_user', JSON.stringify(sessionPayload), 30);
     setCookie('finsight_auth_token', 'fsk_' + Math.random().toString(36).substring(2) + Date.now().toString(36), 30);
 
+    // Save profile to localStorage as active session
+    try {
+      const existingProfile = localStorage.getItem('finsight_user_profile');
+      const base = existingProfile ? JSON.parse(existingProfile) : {};
+      localStorage.setItem('finsight_user_profile', JSON.stringify({
+        ...base,
+        email: sessionPayload.email,
+        name: sessionPayload.name,
+        username: sessionPayload.email ? sessionPayload.email.split('@')[0] : 'user'
+      }));
+    } catch (e) {}
+
     if (onLoginSuccess) onLoginSuccess();
     if (onSuccess) onSuccess();
   };
 
-  const handleOAuthLogin = (providerName) => {
-    setLoadingProvider(providerName);
+  // Real Google OAuth via Supabase
+  const handleGoogleLogin = async () => {
+    setLoadingProvider('Google');
     setFormError('');
-    setTimeout(() => {
-      setLoadingProvider(null);
-      handleCompleteAuth({
-        email: `user.${providerName.toLowerCase()}@finsight.ai`,
-        name: `${providerName} Verified User`,
-        provider: providerName
+    setAuthNotice('');
+
+    const supabase = getSupabaseClient();
+    if (!supabase) {
+      // Fallback if Supabase credentials are not in environment yet
+      setTimeout(() => {
+        setLoadingProvider(null);
+        handleCompleteAuth({
+          email: 'user.google@gmail.com',
+          name: 'Google Verified User',
+          provider: 'Google'
+        });
+      }, 900);
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin
+        }
       });
-    }, 800);
+      if (error) throw error;
+    } catch (err) {
+      console.error('Google Auth Error:', err);
+      setFormError(err.message || 'Google authentication failed.');
+      setLoadingProvider(null);
+    }
   };
 
-  const handleEmailSubmit = (e) => {
+  // Real Email/Password + Verification Email via Supabase
+  const handleEmailSubmit = async (e) => {
     e.preventDefault();
     setFormError('');
+    setAuthNotice('');
 
     if (!email || !email.includes('@')) {
       setFormError('Please enter a valid email address.');
@@ -99,14 +147,68 @@ export const LoginPage = ({
     }
 
     setLoadingProvider('email_submit');
-    setTimeout(() => {
+    const supabase = getSupabaseClient();
+
+    if (!supabase) {
+      // Local fallback mode when cloud database is not connected
+      setTimeout(() => {
+        setLoadingProvider(null);
+        handleCompleteAuth({
+          email,
+          name: fullName || email.split('@')[0],
+          provider: 'email'
+        });
+      }, 700);
+      return;
+    }
+
+    try {
+      if (activeTab === 'register') {
+        // Sign Up with confirmation email sent to user
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              full_name: fullName || email.split('@')[0],
+              company: company || ''
+            },
+            emailRedirectTo: window.location.origin
+          }
+        });
+        if (error) throw error;
+
+        if (data.session) {
+          handleCompleteAuth({
+            email: data.user?.email || email,
+            name: fullName || email.split('@')[0],
+            provider: 'email'
+          });
+        } else {
+          setAuthNotice(
+            `Verification email sent to ${email}! Please check your inbox and verify your email to log in.`
+          );
+        }
+      } else {
+        // Sign In with existing account
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password
+        });
+        if (error) throw error;
+
+        handleCompleteAuth({
+          email: data.user?.email || email,
+          name: data.user?.user_metadata?.full_name || email.split('@')[0],
+          provider: 'email'
+        });
+      }
+    } catch (err) {
+      console.error('Auth error:', err);
+      setFormError(err.message || 'Authentication failed. Please check credentials.');
+    } finally {
       setLoadingProvider(null);
-      handleCompleteAuth({
-        email,
-        name: fullName || email.split('@')[0],
-        provider: 'email'
-      });
-    }, 700);
+    }
   };
 
   const handleAcceptCookies = (type = 'all') => {
@@ -115,7 +217,7 @@ export const LoginPage = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa] text-slate-800 flex flex-col justify-between antialiased selection:bg-slate-800 selection:text-white relative">
+    <div className="min-h-screen bg-[#f8f9fa] dark:bg-[#0b0f17] text-slate-800 dark:text-slate-100 flex flex-col justify-between antialiased selection:bg-slate-800 selection:text-white relative transition-colors">
       {/* Top Header / Navigation */}
       <header className="w-full px-6 py-4 flex items-center justify-between">
         <button
@@ -124,7 +226,7 @@ export const LoginPage = ({
             else if (onLoginSuccess) onLoginSuccess();
             else if (onSuccess) onSuccess();
           }}
-          className="inline-flex items-center gap-2 text-xs font-medium text-slate-500 hover:text-slate-900 transition-colors"
+          className="inline-flex items-center gap-2 text-xs font-medium text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Landing</span>
@@ -135,42 +237,43 @@ export const LoginPage = ({
         </div>
       </header>
 
-      {/* Main Center Card (Clean Minimalist Aesthetic) */}
+      {/* Main Center Card */}
       <main className="flex-1 flex items-center justify-center p-4">
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="w-full max-w-[440px] bg-white border border-slate-200/90 rounded-[28px] shadow-[0_2px_16px_rgba(0,0,0,0.06)] px-8 py-10 flex flex-col items-center"
+          className="w-full max-w-[440px] bg-white dark:bg-[#121824] border border-slate-200/90 dark:border-slate-800 rounded-[28px] shadow-[0_2px_16px_rgba(0,0,0,0.06)] px-8 py-10 flex flex-col items-center transition-colors"
         >
           {/* Logo */}
           <div className="flex items-center gap-2 mb-2">
-            <span className="font-editorial text-2xl font-bold tracking-tight text-black lowercase">
+            <span className="font-editorial text-2xl font-bold tracking-tight text-black dark:text-white lowercase">
               finsight<span className="text-blue-600">.ai</span>
             </span>
           </div>
 
           {/* Welcome Message */}
-          <h1 className="text-3xl font-light text-slate-900 mb-6 tracking-tight">
+          <h1 className="text-3xl font-light text-slate-900 dark:text-white mb-6 tracking-tight">
             Welcome!
           </h1>
 
           {/* Tab Selector: Sign In / Register */}
-          <div className="flex items-center justify-center gap-8 border-b border-slate-100 w-full mb-8 relative">
+          <div className="flex items-center justify-center gap-8 border-b border-slate-100 dark:border-slate-800 w-full mb-8 relative">
             <button
               onClick={() => {
                 setActiveTab('signin');
                 setFormError('');
+                setAuthNotice('');
               }}
               className={`pb-3 text-sm font-medium transition-colors relative ${
-                activeTab === 'signin' ? 'text-slate-900 font-semibold' : 'text-slate-400 hover:text-slate-600'
+                activeTab === 'signin' ? 'text-slate-900 dark:text-white font-semibold' : 'text-slate-400 hover:text-slate-600'
               }`}
             >
               Sign In
               {activeTab === 'signin' && (
                 <motion.div
                   layoutId="activeTabUnderline"
-                  className="absolute bottom-0 left-0 right-0 h-[2px] bg-slate-900 rounded-full"
+                  className="absolute bottom-0 left-0 right-0 h-[2px] bg-slate-900 dark:bg-white rounded-full"
                 />
               )}
             </button>
@@ -179,16 +282,17 @@ export const LoginPage = ({
               onClick={() => {
                 setActiveTab('register');
                 setFormError('');
+                setAuthNotice('');
               }}
               className={`pb-3 text-sm font-medium transition-colors relative ${
-                activeTab === 'register' ? 'text-slate-900 font-semibold' : 'text-slate-400 hover:text-slate-600'
+                activeTab === 'register' ? 'text-slate-900 dark:text-white font-semibold' : 'text-slate-400 hover:text-slate-600'
               }`}
             >
               Register
               {activeTab === 'register' && (
                 <motion.div
                   layoutId="activeTabUnderline"
-                  className="absolute bottom-0 left-0 right-0 h-[2px] bg-slate-900 rounded-full"
+                  className="absolute bottom-0 left-0 right-0 h-[2px] bg-slate-900 dark:bg-white rounded-full"
                 />
               )}
             </button>
@@ -196,8 +300,17 @@ export const LoginPage = ({
 
           {/* Error Banner */}
           {formError && (
-            <div className="w-full mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl">
-              {formError}
+            <div className="w-full mb-4 p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 text-xs rounded-xl flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+              <span>{formError}</span>
+            </div>
+          )}
+
+          {/* Verification / Success Notice */}
+          {authNotice && (
+            <div className="w-full mb-4 p-3.5 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs rounded-xl flex items-start gap-2">
+              <Check className="w-4 h-4 shrink-0 text-emerald-600 mt-0.5" />
+              <span>{authNotice}</span>
             </div>
           )}
 
@@ -207,9 +320,9 @@ export const LoginPage = ({
               {/* Google Button */}
               <button
                 type="button"
-                onClick={() => handleOAuthLogin('Google')}
+                onClick={handleGoogleLogin}
                 disabled={Boolean(loadingProvider)}
-                className="w-full h-12 px-5 rounded-full border border-slate-200 hover:border-slate-300 hover:bg-slate-50/60 text-slate-700 text-sm font-medium flex items-center justify-center gap-3 transition-all cursor-pointer shadow-2xs active:scale-[0.99] disabled:opacity-50"
+                className="w-full h-12 px-5 rounded-full border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50/60 dark:hover:bg-slate-800/60 text-slate-700 dark:text-slate-200 text-sm font-medium flex items-center justify-center gap-3 transition-all cursor-pointer shadow-2xs active:scale-[0.99] disabled:opacity-50"
               >
                 <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">
                   <path
@@ -236,79 +349,40 @@ export const LoginPage = ({
               <button
                 type="button"
                 onClick={() => setShowEmailForm(true)}
-                className="w-full h-12 px-5 rounded-full border border-slate-200 hover:border-slate-300 hover:bg-slate-50/60 text-slate-700 text-sm font-medium flex items-center justify-center gap-3 transition-all cursor-pointer shadow-2xs active:scale-[0.99]"
+                className="w-full h-12 px-5 rounded-full border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50/60 dark:hover:bg-slate-800/60 text-slate-700 dark:text-slate-200 text-sm font-medium flex items-center justify-center gap-3 transition-all cursor-pointer shadow-2xs active:scale-[0.99]"
               >
                 <Mail className="w-4 h-4 text-slate-500 flex-shrink-0" />
                 <span>{activeTab === 'signin' ? 'Sign in with Email' : 'Register with Email'}</span>
               </button>
-
-              {/* Facebook Button */}
-              <button
-                type="button"
-                onClick={() => handleOAuthLogin('Facebook')}
-                disabled={Boolean(loadingProvider)}
-                className="w-full h-12 px-5 rounded-full border border-slate-200 hover:border-slate-300 hover:bg-slate-50/60 text-slate-700 text-sm font-medium flex items-center justify-center gap-3 transition-all cursor-pointer shadow-2xs active:scale-[0.99] disabled:opacity-50"
-              >
-                <svg className="w-4 h-4 text-[#1877F2] fill-current flex-shrink-0" viewBox="0 0 24 24">
-                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                </svg>
-                <span>{loadingProvider === 'Facebook' ? 'Connecting to Facebook...' : `${activeTab === 'signin' ? 'Sign in' : 'Register'} with Facebook`}</span>
-              </button>
-
-              {/* Yahoo / Enterprise SSO Button */}
-              <button
-                type="button"
-                onClick={() => handleOAuthLogin('Yahoo')}
-                disabled={Boolean(loadingProvider)}
-                className="w-full h-12 px-5 rounded-full border border-slate-200 hover:border-slate-300 hover:bg-slate-50/60 text-slate-700 text-sm font-medium flex items-center justify-center gap-3 transition-all cursor-pointer shadow-2xs active:scale-[0.99] disabled:opacity-50"
-              >
-                <span className="font-bold text-sm text-[#6001d2] flex-shrink-0">y!</span>
-                <span>{loadingProvider === 'Yahoo' ? 'Connecting to Yahoo...' : `${activeTab === 'signin' ? 'Sign in' : 'Register'} with Yahoo`}</span>
-              </button>
             </div>
           ) : (
-            /* Inline Email Input Form */
-            <form onSubmit={handleEmailSubmit} className="w-full space-y-4">
-              <div className="flex items-center justify-between pb-1">
-                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                  {activeTab === 'signin' ? 'Email Credentials' : 'New Account Registration'}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setShowEmailForm(false)}
-                  className="text-xs text-blue-600 hover:underline"
-                >
-                  All sign-in options
-                </button>
-              </div>
-
+            <form onSubmit={handleEmailSubmit} className="w-full space-y-3.5">
               {activeTab === 'register' && (
                 <>
                   <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1">Full Name</label>
+                    <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Full Name</label>
                     <div className="relative">
-                      <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                      <User className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                       <input
                         type="text"
-                        required
                         value={fullName}
                         onChange={(e) => setFullName(e.target.value)}
-                        placeholder="Alex Morgan"
-                        className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-slate-800"
+                        placeholder="John Doe"
+                        className="w-full pl-10 pr-4 py-2.5 rounded-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs focus:outline-hidden focus:ring-1 focus:ring-slate-900 dark:focus:ring-white"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1">Company / Organization</label>
+                    <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Company / Organization</label>
                     <div className="relative">
-                      <Building className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                      <Building className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                       <input
                         type="text"
                         value={company}
                         onChange={(e) => setCompany(e.target.value)}
-                        placeholder="Aetheria Systems"
-                        className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-slate-800"
+                        placeholder="Acme Corp"
+                        className="w-full pl-10 pr-4 py-2.5 rounded-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs focus:outline-hidden focus:ring-1 focus:ring-slate-900 dark:focus:ring-white"
                       />
                     </div>
                   </div>
@@ -316,31 +390,31 @@ export const LoginPage = ({
               )}
 
               <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">Email address</label>
+                <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Email address</label>
                 <div className="relative">
-                  <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                  <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input
                     type="email"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="name@company.com"
-                    className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-slate-800"
+                    placeholder="user@example.com"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs focus:outline-hidden focus:ring-1 focus:ring-slate-900 dark:focus:ring-white"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">Password</label>
+                <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Password</label>
                 <div className="relative">
-                  <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                  <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input
                     type="password"
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="At least 6 characters"
-                    className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-slate-800"
+                    placeholder="Minimum 6 characters"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs focus:outline-hidden focus:ring-1 focus:ring-slate-900 dark:focus:ring-white"
                   />
                 </div>
               </div>
@@ -348,108 +422,63 @@ export const LoginPage = ({
               <button
                 type="submit"
                 disabled={Boolean(loadingProvider)}
-                className="w-full h-11 rounded-full bg-slate-900 hover:bg-black text-white text-sm font-medium flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm active:scale-[0.99] disabled:opacity-50"
+                className="w-full h-11 mt-2 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer shadow-xs"
               >
-                <span>{loadingProvider === 'email_submit' ? 'Verifying...' : activeTab === 'signin' ? 'Sign in with Email' : 'Create Account'}</span>
-                <ArrowRight className="w-4 h-4" />
+                <span>{loadingProvider === 'email_submit' ? 'Authenticating...' : (activeTab === 'signin' ? 'Sign In with Email' : 'Create Account & Send Verification')}</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowEmailForm(false)}
+                className="w-full text-center text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 pt-1"
+              >
+                Back to all sign in options
               </button>
             </form>
           )}
 
-          {/* Bottom Switcher */}
-          <div className="mt-8 text-center text-xs text-slate-500">
-            {activeTab === 'signin' ? (
-              <span>
-                Don't have an account?{' '}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setActiveTab('register');
-                    setFormError('');
-                  }}
-                  className="text-slate-900 font-medium underline hover:text-blue-600 transition-colors"
-                >
-                  Create one
-                </button>
-              </span>
-            ) : (
-              <span>
-                Already have an account?{' '}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setActiveTab('signin');
-                    setFormError('');
-                  }}
-                  className="text-slate-900 font-medium underline hover:text-blue-600 transition-colors"
-                >
-                  Sign in
-                </button>
-              </span>
-            )}
-          </div>
+          {/* Privacy Footnote */}
+          <p className="mt-8 text-center text-[11px] text-slate-400 dark:text-slate-500 max-w-[280px]">
+            By continuing, you agree to the Finsight{' '}
+            <span className="underline cursor-pointer hover:text-slate-600 dark:hover:text-slate-300">Terms of Service</span> and{' '}
+            <span className="underline cursor-pointer hover:text-slate-600 dark:hover:text-slate-300">Privacy Policy</span>.
+          </p>
         </motion.div>
       </main>
 
-      {/* Footer Support Link */}
-      <footer className="w-full py-4 text-center">
-        <a
-          href="#"
-          onClick={(e) => e.preventDefault()}
-          className="text-xs text-slate-500 hover:text-slate-800 underline transition-colors"
+      {/* Cookie Consent Banner */}
+      {!cookieConsent && (
+        <aside
+          aria-label="Cookie consent"
+          className="w-full bg-white dark:bg-[#121824] border-t border-slate-200 dark:border-slate-800 p-4 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 z-40 text-xs transition-colors"
         >
-          Contact Us / Support
-        </a>
-      </footer>
+          <div className="flex-1 text-slate-600 dark:text-slate-400 leading-relaxed">
+            <span className="font-semibold text-slate-800 dark:text-slate-200">Cookie Notice:</span> We use cookies and similar technologies to preserve your persistent financial ledger, store custom models, and analyze service traffic.
+            <button
+              onClick={() => setShowCookieDetails(!showCookieDetails)}
+              className="ml-2 underline text-slate-800 dark:text-slate-200 hover:text-blue-600"
+            >
+              {showCookieDetails ? 'Hide details' : 'Cookie choices'}
+            </button>
+          </div>
 
-      {/* Persistent Cookie Compliance Banner (Bottom Docked) */}
-      <AnimatePresence>
-        {!cookieConsent && (
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 30 }}
-            transition={{ duration: 0.3 }}
-            className="fixed bottom-0 inset-x-0 z-50 bg-[#333333] text-white py-3.5 px-6 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-4 text-xs font-normal"
-          >
-            <div className="flex-1 max-w-4xl leading-relaxed">
-              <span>
-                Finsight AI uses cookies to deliver and enhance the quality of its document intelligence services, authenticate sessions, and analyze platform traffic.
-              </span>
-              {showCookieDetails && (
-                <div className="mt-2 text-[11px] text-slate-300 border-t border-white/10 pt-2 space-y-1">
-                  <p>• <strong>Strictly Necessary:</strong> Manages authentication tokens and session state.</p>
-                  <p>• <strong>Performance & Analytics:</strong> Measures document processing latencies and Core API availability.</p>
-                </div>
-              )}
-            </div>
-
-            <div className="flex items-center gap-3 flex-shrink-0">
-              <button
-                type="button"
-                onClick={() => setShowCookieDetails(!showCookieDetails)}
-                className="text-slate-300 hover:text-white underline text-xs cursor-pointer"
-              >
-                {showCookieDetails ? 'Hide details' : 'Learn more'}
-              </button>
-              <button
-                type="button"
-                onClick={() => handleAcceptCookies('essential')}
-                className="px-3.5 py-1.5 rounded-full border border-white/30 text-white hover:bg-white/10 text-xs font-medium transition-colors cursor-pointer"
-              >
-                Essential only
-              </button>
-              <button
-                type="button"
-                onClick={() => handleAcceptCookies('all')}
-                className="px-4 py-1.5 rounded-full bg-white text-slate-900 hover:bg-slate-100 text-xs font-semibold shadow-xs transition-colors cursor-pointer"
-              >
-                Accept all
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          <div className="flex items-center gap-2.5">
+            <button
+              onClick={() => handleAcceptCookies('essential')}
+              className="px-4 py-1.5 rounded-full border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 font-medium transition-colors"
+            >
+              Essential Only
+            </button>
+            <button
+              onClick={() => handleAcceptCookies('all')}
+              className="px-4 py-1.5 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-semibold hover:opacity-90 transition-opacity"
+            >
+              Accept All
+            </button>
+          </div>
+        </aside>
+      )}
     </div>
   );
 };
