@@ -94,17 +94,25 @@ CREATE TABLE IF NOT EXISTS public.vendors (
 CREATE TABLE IF NOT EXISTS public.user_profile (
   id TEXT PRIMARY KEY DEFAULT 'primary',
   name TEXT NOT NULL,
+  username TEXT NOT NULL DEFAULT 'anugaur',
   email TEXT NOT NULL,
+  pronouns TEXT,
+  tagline TEXT,
+  occupation TEXT,
   company_name TEXT NOT NULL,
   company_address TEXT,
+  city TEXT,
+  location TEXT,
   tax_registration_number TEXT,
   default_currency TEXT NOT NULL DEFAULT 'USD',
   avatar_url TEXT,
   plan TEXT NOT NULL DEFAULT 'Pro Business',
+  custom_supabase_url TEXT,
+  custom_supabase_anon_key TEXT,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Enable Row Level Security (RLS) or public access for demo
+-- Enable Row Level Security (RLS)
 ALTER TABLE public.invoices ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.expenses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.receipts ENABLE ROW LEVEL SECURITY;
@@ -138,39 +146,51 @@ export async function fetchSupabaseInvoices(): Promise<Invoice[] | null> {
 
   try {
     const { data, error } = await supabase.from('invoices').select('*').order('created_at', { ascending: false });
-    if (error) {
-      console.warn('Supabase invoice fetch warning:', error.message);
-      return null;
-    }
-    if (!data || data.length === 0) return null;
+    if (error) throw error;
+    if (!data) return [];
 
-    return data.map((row) => ({
+    return data.map((row: any) => ({
       id: row.id,
       invoiceNumber: row.invoice_number,
-      customerId: row.customer_id || '',
+      customerId: row.customer_id,
       customerName: row.customer_name,
       customerEmail: row.customer_email || '',
       issueDate: row.issue_date,
       dueDate: row.due_date,
-      items: typeof row.items === 'string' ? JSON.parse(row.items) : row.items || [],
-      subtotal: Number(row.subtotal || 0),
-      taxTotal: Number(row.tax_total || 0),
-      discountTotal: Number(row.discount_total || 0),
-      total: Number(row.total || 0),
+      items: row.items || [],
+      subtotal: Number(row.subtotal),
+      taxTotal: Number(row.tax_total),
+      discountTotal: Number(row.discount_total),
+      total: Number(row.total),
       status: row.status,
-      currency: row.currency || 'USD',
-      notes: row.notes || '',
-      paymentTerms: row.payment_terms || 'Net 30',
-      createdAt: row.created_at || new Date().toISOString().split('T')[0],
+      currency: row.currency,
+      notes: row.notes,
+      paymentTerms: row.payment_terms,
+      createdAt: row.created_at,
     }));
   } catch (err) {
-    console.error('Error fetching invoices from Supabase:', err);
+    console.warn('Failed to fetch invoices from Supabase:', err);
     return null;
   }
 }
 
-// Upsert Invoice to Supabase
+// Save/Update Single Invoice in Supabase
 export async function saveSupabaseInvoice(invoice: Invoice): Promise<boolean> {
+  // Always update local persistent fallback
+  try {
+    const cached = localStorage.getItem('finsight_invoices');
+    const list = cached ? JSON.parse(cached) : [];
+    const index = list.findIndex((i: Invoice) => i.id === invoice.id);
+    if (index >= 0) {
+      list[index] = invoice;
+    } else {
+      list.unshift(invoice);
+    }
+    localStorage.setItem('finsight_invoices', JSON.stringify(list));
+  } catch (e) {
+    console.warn('LocalStorage invoice save error', e);
+  }
+
   const supabase = getSupabaseClient();
   if (!supabase) return false;
 
@@ -193,29 +213,35 @@ export async function saveSupabaseInvoice(invoice: Invoice): Promise<boolean> {
       notes: invoice.notes,
       payment_terms: invoice.paymentTerms,
     });
-
-    if (error) {
-      console.error('Supabase save invoice error:', error.message);
-      return false;
-    }
+    if (error) throw error;
     return true;
   } catch (err) {
-    console.error('Error saving invoice to Supabase:', err);
+    console.warn('Failed to save invoice in Supabase:', err);
     return false;
   }
 }
 
 // Delete Invoice from Supabase
 export async function deleteSupabaseInvoice(id: string): Promise<boolean> {
+  try {
+    const cached = localStorage.getItem('finsight_invoices');
+    if (cached) {
+      const list = JSON.parse(cached).filter((i: Invoice) => i.id !== id);
+      localStorage.setItem('finsight_invoices', JSON.stringify(list));
+    }
+  } catch (e) {
+    console.warn('LocalStorage invoice delete error', e);
+  }
+
   const supabase = getSupabaseClient();
   if (!supabase) return false;
 
   try {
     const { error } = await supabase.from('invoices').delete().eq('id', id);
-    if (error) console.error('Supabase delete invoice error:', error.message);
-    return !error;
+    if (error) throw error;
+    return true;
   } catch (err) {
-    console.error('Error deleting invoice from Supabase:', err);
+    console.warn('Failed to delete invoice from Supabase:', err);
     return false;
   }
 }
@@ -226,29 +252,46 @@ export async function fetchSupabaseExpenses(): Promise<Expense[] | null> {
   if (!supabase) return null;
 
   try {
-    const { data, error } = await supabase.from('expenses').select('*').order('created_at', { ascending: false });
-    if (error || !data || data.length === 0) return null;
+    const { data, error } = await supabase.from('expenses').select('*').order('date', { ascending: false });
+    if (error) throw error;
+    if (!data) return [];
 
-    return data.map((row) => ({
+    return data.map((row: any) => ({
       id: row.id,
       title: row.title,
       category: row.category,
       vendorId: row.vendor_id,
       vendorName: row.vendor_name,
-      amount: Number(row.amount || 0),
-      tax: Number(row.tax || 0),
+      amount: Number(row.amount),
+      tax: Number(row.tax),
       date: row.date,
       paymentMethod: row.payment_method,
       status: row.status,
       receiptId: row.receipt_id,
     }));
   } catch (err) {
+    console.warn('Failed to fetch expenses from Supabase:', err);
     return null;
   }
 }
 
-// Save Expense
+// Save/Update Single Expense in Supabase
 export async function saveSupabaseExpense(expense: Expense): Promise<boolean> {
+  // Always update local persistent fallback
+  try {
+    const cached = localStorage.getItem('finsight_expenses');
+    const list = cached ? JSON.parse(cached) : [];
+    const index = list.findIndex((e: Expense) => e.id === expense.id);
+    if (index >= 0) {
+      list[index] = expense;
+    } else {
+      list.unshift(expense);
+    }
+    localStorage.setItem('finsight_expenses', JSON.stringify(list));
+  } catch (e) {
+    console.warn('LocalStorage expense save error', e);
+  }
+
   const supabase = getSupabaseClient();
   if (!supabase) return false;
 
@@ -266,44 +309,63 @@ export async function saveSupabaseExpense(expense: Expense): Promise<boolean> {
       status: expense.status,
       receipt_id: expense.receiptId,
     });
-    return !error;
+    if (error) throw error;
+    return true;
   } catch (err) {
+    console.warn('Failed to save expense in Supabase:', err);
     return false;
   }
 }
 
-// Fetch Receipts
+// Fetch Receipts from Supabase
 export async function fetchSupabaseReceipts(): Promise<Receipt[] | null> {
   const supabase = getSupabaseClient();
   if (!supabase) return null;
 
   try {
     const { data, error } = await supabase.from('receipts').select('*').order('created_at', { ascending: false });
-    if (error || !data || data.length === 0) return null;
+    if (error) throw error;
+    if (!data) return [];
 
-    return data.map((row) => ({
+    return data.map((row: any) => ({
       id: row.id,
       vendorName: row.vendor_name,
       invoiceNumber: row.invoice_number,
       gstId: row.gst_id,
       date: row.date,
       category: row.category,
-      subtotal: Number(row.subtotal || 0),
-      taxTotal: Number(row.tax_total || 0),
-      total: Number(row.total || 0),
-      confidenceScore: Number(row.confidence_score || 95),
+      subtotal: Number(row.subtotal),
+      taxTotal: Number(row.tax_total),
+      total: Number(row.total),
+      confidenceScore: Number(row.confidence_score),
       status: row.status,
-      items: typeof row.items === 'string' ? JSON.parse(row.items) : row.items || [],
+      items: row.items || [],
       imageUrl: row.image_url,
-      createdAt: row.created_at || row.date,
+      createdAt: row.created_at,
     }));
   } catch (err) {
+    console.warn('Failed to fetch receipts from Supabase:', err);
     return null;
   }
 }
 
-// Save Receipt
+// Save/Update Single Receipt in Supabase
 export async function saveSupabaseReceipt(receipt: Receipt): Promise<boolean> {
+  // Always update local persistent fallback
+  try {
+    const cached = localStorage.getItem('finsight_receipts');
+    const list = cached ? JSON.parse(cached) : [];
+    const index = list.findIndex((r: Receipt) => r.id === receipt.id);
+    if (index >= 0) {
+      list[index] = receipt;
+    } else {
+      list.unshift(receipt);
+    }
+    localStorage.setItem('finsight_receipts', JSON.stringify(list));
+  } catch (e) {
+    console.warn('LocalStorage receipt save error', e);
+  }
+
   const supabase = getSupabaseClient();
   if (!supabase) return false;
 
@@ -323,81 +385,103 @@ export async function saveSupabaseReceipt(receipt: Receipt): Promise<boolean> {
       items: receipt.items,
       image_url: receipt.imageUrl,
     });
-    return !error;
+    if (error) throw error;
+    return true;
   } catch (err) {
+    console.warn('Failed to save receipt in Supabase:', err);
     return false;
   }
 }
 
-// Bulk Sync initial demo data to Supabase
-export async function syncAllToSupabase(payload: {
-  invoices: Invoice[];
-  expenses: Expense[];
-  receipts: Receipt[];
-  customers: Customer[];
-  vendors: Vendor[];
-  user: UserProfile;
-}): Promise<{ success: boolean; message: string }> {
+// Fetch User Profile from Supabase
+export async function fetchSupabaseUserProfile(): Promise<UserProfile | null> {
+  const supabase = getSupabaseClient();
+  if (!supabase) return null;
+
+  try {
+    const { data, error } = await supabase.from('user_profile').select('*').eq('id', 'primary').single();
+    if (error) throw error;
+    if (!data) return null;
+
+    return {
+      name: data.name,
+      username: data.username || 'anugaur',
+      email: data.email,
+      pronouns: data.pronouns,
+      tagline: data.tagline,
+      occupation: data.occupation,
+      companyName: data.company_name,
+      companyAddress: data.company_address || '',
+      city: data.city || '',
+      location: data.location || '',
+      taxRegistrationNumber: data.tax_registration_number || '',
+      defaultCurrency: data.default_currency || 'USD',
+      avatarUrl: data.avatar_url || '',
+      plan: data.plan || 'Pro Business',
+      customSupabaseUrl: data.custom_supabase_url || '',
+      customSupabaseAnonKey: data.custom_supabase_anon_key || '',
+    };
+  } catch (err) {
+    console.warn('Failed to fetch user profile from Supabase:', err);
+    return null;
+  }
+}
+
+// Save/Update User Profile in Supabase
+export async function saveSupabaseUserProfile(user: UserProfile): Promise<{ success: boolean; message?: string }> {
   const supabase = getSupabaseClient();
   if (!supabase) {
-    return { success: false, message: 'Supabase credentials not configured.' };
+    // Also save in localStorage as fallback
+    localStorage.setItem('finsight_user_profile', JSON.stringify(user));
+    return { success: true, message: 'Saved locally' };
   }
 
   try {
-    // 1. Sync User
-    await supabase.from('user_profile').upsert({
+    const { error } = await supabase.from('user_profile').upsert({
       id: 'primary',
-      name: payload.user.name,
-      email: payload.user.email,
-      company_name: payload.user.companyName,
-      company_address: payload.user.companyAddress,
-      tax_registration_number: payload.user.taxRegistrationNumber,
-      default_currency: payload.user.defaultCurrency,
-      avatar_url: payload.user.avatarUrl,
-      plan: payload.user.plan,
+      name: user.name,
+      username: user.username,
+      email: user.email,
+      pronouns: user.pronouns,
+      tagline: user.tagline,
+      occupation: user.occupation,
+      company_name: user.companyName,
+      company_address: user.companyAddress,
+      city: user.city,
+      location: user.location,
+      tax_registration_number: user.taxRegistrationNumber,
+      default_currency: user.defaultCurrency,
+      avatar_url: user.avatarUrl,
+      plan: user.plan,
+      custom_supabase_url: user.customSupabaseUrl,
+      custom_supabase_anon_key: user.customSupabaseAnonKey,
+      updated_at: new Date().toISOString(),
     });
+    if (error) throw error;
+    localStorage.setItem('finsight_user_profile', JSON.stringify(user));
+    return { success: true, message: 'Saved to Supabase database!' };
+  } catch (err: any) {
+    console.warn('Failed to save user profile in Supabase:', err);
+    localStorage.setItem('finsight_user_profile', JSON.stringify(user));
+    return { success: false, message: err.message };
+  }
+}
 
-    // 2. Sync Customers
-    if (payload.customers.length > 0) {
-      await supabase.from('customers').upsert(
-        payload.customers.map((c) => ({
-          id: c.id,
-          name: c.name,
-          company: c.company,
-          email: c.email,
-          phone: c.phone,
-          address: c.address,
-          total_billed: c.totalBilled,
-          total_paid: c.totalPaid,
-          outstanding_balance: c.outstandingBalance,
-          status: c.status,
-          avatar_url: c.avatarUrl,
-        }))
-      );
-    }
+// Bulk Sync Function
+export async function syncAllToSupabase(
+  invoices: Invoice[],
+  expenses: Expense[],
+  receipts: Receipt[]
+): Promise<{ success: boolean; message: string }> {
+  const supabase = getSupabaseClient();
+  if (!supabase) {
+    return { success: false, message: 'Supabase credentials missing. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to .env' };
+  }
 
-    // 3. Sync Vendors
-    if (payload.vendors.length > 0) {
-      await supabase.from('vendors').upsert(
-        payload.vendors.map((v) => ({
-          id: v.id,
-          name: v.name,
-          category: v.category,
-          contact_email: v.contactEmail,
-          contact_phone: v.contactPhone,
-          total_spent: v.totalSpent,
-          pending_payables: v.pendingPayables,
-          risk_score: v.riskScore,
-          status: v.status,
-          logo_url: v.logoUrl,
-        }))
-      );
-    }
-
-    // 4. Sync Invoices
-    if (payload.invoices.length > 0) {
+  try {
+    if (invoices.length > 0) {
       await supabase.from('invoices').upsert(
-        payload.invoices.map((inv) => ({
+        invoices.map((inv) => ({
           id: inv.id,
           invoice_number: inv.invoiceNumber,
           customer_id: inv.customerId,
@@ -418,10 +502,9 @@ export async function syncAllToSupabase(payload: {
       );
     }
 
-    // 5. Sync Expenses
-    if (payload.expenses.length > 0) {
+    if (expenses.length > 0) {
       await supabase.from('expenses').upsert(
-        payload.expenses.map((exp) => ({
+        expenses.map((exp) => ({
           id: exp.id,
           title: exp.title,
           category: exp.category,
@@ -437,10 +520,9 @@ export async function syncAllToSupabase(payload: {
       );
     }
 
-    // 6. Sync Receipts
-    if (payload.receipts.length > 0) {
+    if (receipts.length > 0) {
       await supabase.from('receipts').upsert(
-        payload.receipts.map((rcpt) => ({
+        receipts.map((rcpt) => ({
           id: rcpt.id,
           vendor_name: rcpt.vendorName,
           invoice_number: rcpt.invoiceNumber,

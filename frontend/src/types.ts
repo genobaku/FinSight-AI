@@ -25,7 +25,7 @@ export interface Invoice {
   status: InvoiceStatus;
   currency: string;
   notes?: string;
-  paymentTerms: string; // e.g. 'Net 30', 'Net 15', 'Due on Receipt'
+  paymentTerms: string;
   createdAt: string;
 }
 
@@ -39,7 +39,7 @@ export interface Receipt {
   subtotal: number;
   taxTotal: number;
   total: number;
-  confidenceScore: number; // e.g. 98.5
+  confidenceScore: number;
   status: 'Verified' | 'Pending Review' | 'Flagged';
   items: { description: string; quantity: number; price: number; total: number }[];
   imageUrl?: string;
@@ -143,15 +143,24 @@ export type TabType =
   | 'copilot'
   | 'notifications'
   | 'settings'
+  | 'profile'
   | 'login';
 
 export interface UserProfile {
   name: string;
+  username: string; // Unique username (e.g., 'anugaur')
   email: string;
+  pronouns?: string; // e.g., 'they/them', 'she/her', 'he/him'
+  tagline?: string;
+  occupation?: string;
   companyName: string;
   companyAddress: string;
+  city?: string;
+  location?: string;
   taxRegistrationNumber: string;
   defaultCurrency: string;
   avatarUrl: string;
   plan: 'Starter' | 'Pro Business' | 'Enterprise';
+  customSupabaseUrl?: string;
+  customSupabaseAnonKey?: string;
 }

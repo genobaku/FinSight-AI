@@ -93,7 +93,7 @@
 //               <span>Smart Financial Summary</span>
 //             </div>
 //             <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-//               Welcome back, {user.name} 👋
+//               Welcome back, {user.name}
 //             </h2>
 //             <p className="text-slate-300 text-sm max-w-xl">
 //               Your business liquidity is strong. You have{' '}

@@ -1,0 +1,7 @@
+ACME INDUSTRIAL SUPPLIES
+Date: 2026-09-01
+Invoice Number: INV-9901
+Item A: 100.00
+Subtotal: $100.00
+Tax: $10.00
+Total: $110.00
